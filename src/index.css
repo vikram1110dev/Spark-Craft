@@ -2,13 +2,13 @@
   --bg-main: #F3F4F6;
   --bg-card: rgba(255, 255, 255, 0.85);
   --bg-darker: #F9FAFB;
-  --primary: #EA580C;
-  --primary-hover: #C2410C;
-  --primary-glow: rgba(234, 88, 12, 0.12);
+  --primary: #111827;
+  --primary-hover: #374151;
+  --primary-glow: rgba(17, 24, 39, 0.08);
   --text-main: #1F2937;
   --text-muted: #4B5563;
   --border: rgba(17, 24, 39, 0.08);
-  --border-focus: rgba(234, 88, 12, 0.3);
+  --border-focus: rgba(17, 24, 39, 0.2);
   --glass-shadow: rgba(0, 0, 0, 0.05);
   --font-sans: 'Inter', sans-serif;
   --font-heading: 'Outfit', sans-serif;
@@ -40,7 +40,7 @@ body {
   right: 0;
   bottom: 0;
   z-index: -1;
-  background: radial-gradient(circle at 10% 20%, rgba(234, 88, 12, 0.03) 0%, transparent 40%),
+  background: radial-gradient(circle at 10% 20%, rgba(17, 24, 39, 0.02) 0%, transparent 40%),
               radial-gradient(circle at 90% 80%, rgba(59, 130, 246, 0.02) 0%, transparent 40%),
               var(--bg-darker);
 }
