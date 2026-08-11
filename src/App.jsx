@@ -171,8 +171,8 @@ function App() {
       notes: ''
     });
 
-    // Scroll to success panel area
-    scrollToSection('book-service');
+    // Switch view to tracking screen
+    switchScreen('tracking');
   };
 
   // Simulate advancing the status of a tracked booking for demo purposes
@@ -223,22 +223,13 @@ function App() {
 
   const categories = ['All', 'Engine', 'Brakes', 'Filters', 'Controls', 'Fluids', 'Electrical', 'Drivetrain'];
 
-  // Smooth Scroll offset handler
-  const scrollToSection = (id) => {
-    setActiveTab(id);
-    const element = document.getElementById(id);
-    if (element) {
-      const offset = 90; // Adjust for sticky header
-      const bodyRect = document.body.getBoundingClientRect().top;
-      const elementRect = element.getBoundingClientRect().top;
-      const elementPosition = elementRect - bodyRect;
-      const offsetPosition = elementPosition - offset;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
-    }
+  // Switch Screen logic
+  const switchScreen = (tabName) => {
+    setActiveTab(tabName);
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
   };
 
   return (
@@ -247,7 +238,7 @@ function App() {
       {/* Top Navbar */}
       <nav style={styles.nav}>
         <div className="app-container" style={styles.navContainer}>
-          <div style={styles.logoGroup} onClick={() => scrollToSection('home')}>
+          <div style={styles.logoGroup} onClick={() => switchScreen('home')}>
             <div style={styles.logoIcon}>
               <Wrench size={22} color="#fff" />
             </div>
@@ -257,28 +248,28 @@ function App() {
 
           <div style={styles.navLinks}>
             <button 
-              onClick={() => scrollToSection('home')} 
+              onClick={() => switchScreen('home')} 
               style={activeTab === 'home' ? { ...styles.navLink, ...styles.navLinkActive } : styles.navLink}
             >
               Store
             </button>
             {SHOW_GARAGE_SERVICES && (
               <button 
-                onClick={() => scrollToSection('services')} 
+                onClick={() => switchScreen('services')} 
                 style={activeTab === 'services' ? { ...styles.navLink, ...styles.navLinkActive } : styles.navLink}
               >
                 Services
               </button>
             )}
             <button 
-              onClick={() => scrollToSection('catalog')} 
+              onClick={() => switchScreen('catalog')} 
               style={activeTab === 'catalog' ? { ...styles.navLink, ...styles.navLinkActive } : styles.navLink}
             >
               Spare Parts
             </button>
             {SHOW_GARAGE_SERVICES && (
               <button 
-                onClick={() => scrollToSection('tracking')} 
+                onClick={() => switchScreen('tracking')} 
                 style={activeTab === 'tracking' ? { ...styles.navLink, ...styles.navLinkActive } : styles.navLink}
               >
                 Track Ride
@@ -295,7 +286,7 @@ function App() {
               {cart.length > 0 && <span style={styles.cartCount}>{cart.reduce((a, c) => a + c.qty, 0)}</span>}
             </button>
             {SHOW_GARAGE_SERVICES && (
-              <button onClick={() => scrollToSection('book-service')} style={styles.navCTA}>
+              <button onClick={() => switchScreen('book')} style={styles.navCTA}>
                 <Calendar size={16} />
                 Book Slot
               </button>
@@ -304,108 +295,110 @@ function App() {
         </div>
       </nav>
 
-      {/* Main Content Area containing all sections for normal page scrolling */}
-      <main className="app-container" style={{ padding: '6.5rem 1.5rem 4rem' }}>
+      {/* Main Content Area containing separate screen/tab components */}
+      <main className="app-container" style={{ padding: '6.5rem 1.5rem 4rem', minHeight: 'calc(100vh - 20rem)' }}>
         
-        {/* SECTION 1: Home / Garage */}
-        <section id="home" className="animate-fade-in-up" style={styles.sectionSpacing}>
-          {/* Hero Section */}
-          <div className="glass-panel" style={styles.heroSection}>
-            <div style={styles.heroContent}>
-              <div style={styles.badgeRow}>
-                <Sparkles size={16} color="var(--primary)" />
-                <span>{SHOW_GARAGE_SERVICES ? 'PREMIUM MOTORCYCLE CARE & SPARE PARTS' : '100% GENUINE MOTORCYCLE SPARE PARTS'}</span>
-              </div>
-              <h1 style={styles.heroTitle}>
-                {SHOW_GARAGE_SERVICES ? (
-                  <>
-                    KEEP YOUR MACHINE <br />
-                    <span style={{ color: 'var(--primary)' }}>AT PEAK PERFORMANCE</span>
-                  </>
-                ) : (
-                  <>
-                    PREMIUM GENUINE <br />
-                    <span style={{ color: 'var(--primary)' }}>MOTORCYCLE SPARES</span>
-                  </>
-                )}
-              </h1>
-              <p style={styles.heroDescription}>
-                {SHOW_GARAGE_SERVICES 
-                  ? 'Spark Craft is your absolute destination for high-end track tuning, daily general maintenance, and 100% genuine motorcycle spares. Book your expert slot in seconds.'
-                  : 'Spark Craft is your destination for premium quality, factory-approved motorcycle spares and accessories. Keep your ride authentic and running at maximum potential.'}
-              </p>
-              <div style={styles.heroButtonRow}>
-                {SHOW_GARAGE_SERVICES ? (
-                  <button onClick={() => scrollToSection('book-service')} className="btn-primary">
-                    <Calendar size={18} />
-                    Book Service Now
+        {/* SCREEN 1: Home / Landing */}
+        {activeTab === 'home' && (
+          <section className="animate-fade-in-up" style={styles.sectionSpacing}>
+            {/* Hero Section */}
+            <div className="glass-panel" style={styles.heroSection}>
+              <div style={styles.heroContent}>
+                <div style={styles.badgeRow}>
+                  <Sparkles size={16} color="var(--primary)" />
+                  <span>{SHOW_GARAGE_SERVICES ? 'PREMIUM MOTORCYCLE CARE & SPARE PARTS' : '100% GENUINE MOTORCYCLE SPARE PARTS'}</span>
+                </div>
+                <h1 style={styles.heroTitle}>
+                  {SHOW_GARAGE_SERVICES ? (
+                    <>
+                      KEEP YOUR MACHINE <br />
+                      <span style={{ color: 'var(--primary)' }}>AT PEAK PERFORMANCE</span>
+                    </>
+                  ) : (
+                    <>
+                      PREMIUM GENUINE <br />
+                      <span style={{ color: 'var(--primary)' }}>MOTORCYCLE SPARES</span>
+                    </>
+                  )}
+                </h1>
+                <p style={styles.heroDescription}>
+                  {SHOW_GARAGE_SERVICES 
+                    ? 'Spark Craft is your absolute destination for high-end track tuning, daily general maintenance, and 100% genuine motorcycle spares. Book your expert slot in seconds.'
+                    : 'Spark Craft is your destination for premium quality, factory-approved motorcycle spares and accessories. Keep your ride authentic and running at maximum potential.'}
+                </p>
+                <div style={styles.heroButtonRow}>
+                  {SHOW_GARAGE_SERVICES ? (
+                    <button onClick={() => switchScreen('book')} className="btn-primary">
+                      <Calendar size={18} />
+                      Book Service Now
+                    </button>
+                  ) : (
+                    <button onClick={() => switchScreen('catalog')} className="btn-primary">
+                      <ShoppingBag size={18} />
+                      Explore Spares Catalog
+                    </button>
+                  )}
+                  <button onClick={SHOW_GARAGE_SERVICES ? () => switchScreen('catalog') : () => setIsCartOpen(true)} className="btn-secondary">
+                    {SHOW_GARAGE_SERVICES ? 'Browse Genuine Spares' : 'View Shopping Cart'}
+                    <ArrowRight size={18} />
                   </button>
-                ) : (
-                  <button onClick={() => scrollToSection('catalog')} className="btn-primary">
-                    <ShoppingBag size={18} />
-                    Explore Spares Catalog
-                  </button>
-                )}
-                <button onClick={SHOW_GARAGE_SERVICES ? () => scrollToSection('catalog') : () => setIsCartOpen(true)} className="btn-secondary">
-                  {SHOW_GARAGE_SERVICES ? 'Browse Genuine Spares' : 'View Shopping Cart'}
-                  <ArrowRight size={18} />
-                </button>
+                </div>
               </div>
-            </div>
-            <div style={styles.heroImageWrapper}>
-              <img 
-                src={heroImg} 
-                alt="Premium custom motorcycle in garage" 
-                style={styles.heroImage}
-              />
-            </div>
-          </div>
-
-          {/* Quick Metrics */}
-          <div style={styles.metricGrid}>
-            <div className="glass-panel" style={styles.metricCard}>
-              <TrendingUp size={24} color="var(--primary)" />
-              <h3 style={styles.metricVal}>{SHOW_GARAGE_SERVICES ? '1,200+' : '4,500+'}</h3>
-              <p style={styles.metricLabel}>{SHOW_GARAGE_SERVICES ? 'Machines Tuned' : 'Orders Shipped'}</p>
-            </div>
-            <div className="glass-panel" style={styles.metricCard}>
-              <ShieldCheck size={24} color="var(--success)" />
-              <h3 style={styles.metricVal}>100%</h3>
-              <p style={styles.metricLabel}>Genuine Parts Guaranteed</p>
-            </div>
-            <div className="glass-panel" style={styles.metricCard}>
-              <Clock size={24} color="var(--info)" />
-              <h3 style={styles.metricVal}>{SHOW_GARAGE_SERVICES ? 'Same-Day' : 'Fast-Track'}</h3>
-              <p style={styles.metricLabel}>{SHOW_GARAGE_SERVICES ? 'Express Fluids & Inspection' : 'Delivery & Secure Dispatch'}</p>
-            </div>
-          </div>
-
-          {/* Fast tracking & shortcut (Only shown if Garage is Active) */}
-          {SHOW_GARAGE_SERVICES && (
-            <div className="glass-panel" style={styles.quickTrackPanel}>
-              <div>
-                <h3 style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>Track Current Service Status</h3>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Have a service code (e.g. SC-77301)? Look up diagnostics status instantly.</p>
-              </div>
-              <form onSubmit={handleTrackSubmit} style={styles.quickTrackForm}>
-                <input 
-                  type="text" 
-                  placeholder="Enter Code (e.g. SC-77301)"
-                  value={searchTrackingCode}
-                  onChange={(e) => setSearchTrackingCode(e.target.value)}
-                  style={styles.quickTrackInput}
+              <div style={styles.heroImageWrapper}>
+                <img 
+                  src={heroImg} 
+                  alt="Premium custom motorcycle in garage" 
+                  style={styles.heroImage}
                 />
-                <button type="submit" className="btn-primary" style={{ height: '100%' }}>
-                  Track
-                </button>
-              </form>
+              </div>
             </div>
-          )}
-        </section>
 
-        {/* SECTION 2: Services (Only shown if Garage is Active) */}
-        {SHOW_GARAGE_SERVICES && (
-          <section id="services" className="animate-fade-in-up" style={styles.sectionSpacing}>
+            {/* Quick Metrics */}
+            <div style={styles.metricGrid}>
+              <div className="glass-panel" style={styles.metricCard}>
+                <TrendingUp size={24} color="var(--primary)" />
+                <h3 style={styles.metricVal}>{SHOW_GARAGE_SERVICES ? '1,200+' : '4,500+'}</h3>
+                <p style={styles.metricLabel}>{SHOW_GARAGE_SERVICES ? 'Machines Tuned' : 'Orders Shipped'}</p>
+              </div>
+              <div className="glass-panel" style={styles.metricCard}>
+                <ShieldCheck size={24} color="var(--success)" />
+                <h3 style={styles.metricVal}>100%</h3>
+                <p style={styles.metricLabel}>Genuine Parts Guaranteed</p>
+              </div>
+              <div className="glass-panel" style={styles.metricCard}>
+                <Clock size={24} color="var(--info)" />
+                <h3 style={styles.metricVal}>{SHOW_GARAGE_SERVICES ? 'Same-Day' : 'Fast-Track'}</h3>
+                <p style={styles.metricLabel}>{SHOW_GARAGE_SERVICES ? 'Express Fluids & Inspection' : 'Delivery & Secure Dispatch'}</p>
+              </div>
+            </div>
+
+            {/* Fast tracking shortcut (Only shown if Garage is Active) */}
+            {SHOW_GARAGE_SERVICES && (
+              <div className="glass-panel" style={styles.quickTrackPanel}>
+                <div>
+                  <h3 style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>Track Current Service Status</h3>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Have a service code (e.g. SC-77301)? Look up diagnostics status instantly.</p>
+                </div>
+                <form onSubmit={handleTrackSubmit} style={styles.quickTrackForm}>
+                  <input 
+                    type="text" 
+                    placeholder="Enter Code (e.g. SC-77301)"
+                    value={searchTrackingCode}
+                    onChange={(e) => setSearchTrackingCode(e.target.value)}
+                    style={styles.quickTrackInput}
+                  />
+                  <button type="submit" className="btn-primary" style={{ height: '100%' }}>
+                    Track
+                  </button>
+                </form>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* SCREEN 2: Services (Only shown if Garage is Active) */}
+        {SHOW_GARAGE_SERVICES && activeTab === 'services' && (
+          <section className="animate-fade-in-up" style={styles.sectionSpacing}>
             <div style={styles.sectionHeader}>
               <span style={styles.sectionSubtitle}>CLINIC SERVICES</span>
               <h2 style={styles.sectionTitle}>PROFESSIONAL MOTORCYCLE CARE</h2>
@@ -451,102 +444,104 @@ function App() {
             </div>
             
             <div style={{ textAlign: 'center', marginTop: '3rem' }}>
-              <button onClick={() => scrollToSection('book-service')} className="btn-primary">
+              <button onClick={() => switchScreen('book')} className="btn-primary">
                 Book An Appointment
               </button>
             </div>
           </section>
         )}
 
-        {/* SECTION 3: Spare Parts Shop */}
-        <section id="catalog" className="animate-fade-in-up" style={styles.sectionSpacing}>
-          <div style={styles.sectionHeader}>
-            <span style={styles.sectionSubtitle}>SPARK STORE</span>
-            <h2 style={styles.sectionTitle}>GENUINE SPARES CATALOG</h2>
-            <p style={styles.sectionDesc}>Search or filter our catalog of race-tested and manufacturer-approved components to keep your machine authentic.</p>
-          </div>
-
-          {/* Filter controls */}
-          <div className="glass-panel" style={styles.filterControls}>
-            <div style={styles.searchBox}>
-              <Search size={18} color="var(--text-muted)" />
-              <input 
-                type="text" 
-                placeholder="Search parts, brands, keywords..." 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={styles.searchInput}
-              />
+        {/* SCREEN 3: Spare Parts Shop */}
+        {activeTab === 'catalog' && (
+          <section className="animate-fade-in-up" style={styles.sectionSpacing}>
+            <div style={styles.sectionHeader}>
+              <span style={styles.sectionSubtitle}>SPARK STORE</span>
+              <h2 style={styles.sectionTitle}>GENUINE SPARES CATALOG</h2>
+              <p style={styles.sectionDesc}>Search or filter our catalog of race-tested and manufacturer-approved components to keep your machine authentic.</p>
             </div>
 
-            <div style={styles.categoryFilters}>
-              {categories.map(cat => (
-                <button
-                  key={cat}
-                  onClick={() => setCategoryFilter(cat)}
-                  style={categoryFilter === cat ? styles.filterTabActive : styles.filterTab}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-          </div>
+            {/* Filter controls */}
+            <div className="glass-panel" style={styles.filterControls}>
+              <div style={styles.searchBox}>
+                <Search size={18} color="var(--text-muted)" />
+                <input 
+                  type="text" 
+                  placeholder="Search parts, brands, keywords..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={styles.searchInput}
+                />
+              </div>
 
-          {/* Catalog Grid */}
-          {filteredProducts.length === 0 ? (
-            <div className="glass-panel" style={styles.emptyCatalog}>
-              <AlertCircle size={48} color="var(--text-muted)" style={{ marginBottom: '1rem' }} />
-              <h3>No Spare Parts Found</h3>
-              <p style={{ color: 'var(--text-muted)' }}>Try adjusting your search queries or filter categories.</p>
+              <div style={styles.categoryFilters}>
+                {categories.map(cat => (
+                  <button
+                    key={cat}
+                    onClick={() => setCategoryFilter(cat)}
+                    style={categoryFilter === cat ? styles.filterTabActive : styles.filterTab}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
             </div>
-          ) : (
-            <div style={styles.catalogGrid}>
-              {filteredProducts.map(part => (
-                <div key={part.id} className="glass-panel" style={styles.productCard}>
-                  <div style={styles.productBadge}>{part.category}</div>
-                  <div style={styles.productDetails}>
-                    <h3 style={styles.productName}>{part.name}</h3>
-                    <p style={styles.productDesc}>{part.desc}</p>
-                    <div style={styles.productFooter}>
-                      <div>
-                        <span style={styles.productPrice}>${part.price.toFixed(2)}</span>
-                        <span style={styles.productStock}>In Stock: {part.stock}</span>
+
+            {/* Catalog Grid */}
+            {filteredProducts.length === 0 ? (
+              <div className="glass-panel" style={styles.emptyCatalog}>
+                <AlertCircle size={48} color="var(--text-muted)" style={{ marginBottom: '1rem' }} />
+                <h3>No Spare Parts Found</h3>
+                <p style={{ color: 'var(--text-muted)' }}>Try adjusting your search queries or filter categories.</p>
+              </div>
+            ) : (
+              <div style={styles.catalogGrid}>
+                {filteredProducts.map(part => (
+                  <div key={part.id} className="glass-panel" style={styles.productCard}>
+                    <div style={styles.productBadge}>{part.category}</div>
+                    <div style={styles.productDetails}>
+                      <h3 style={styles.productName}>{part.name}</h3>
+                      <p style={styles.productDesc}>{part.desc}</p>
+                      <div style={styles.productFooter}>
+                        <div>
+                          <span style={styles.productPrice}>${part.price.toFixed(2)}</span>
+                          <span style={styles.productStock}>In Stock: {part.stock}</span>
+                        </div>
+                        <button 
+                          onClick={() => addToCart(part)}
+                          className="btn-primary" 
+                          style={styles.addToCartBtn}
+                        >
+                          <Plus size={16} />
+                          Add
+                        </button>
                       </div>
-                      <button 
-                        onClick={() => addToCart(part)}
-                        className="btn-primary" 
-                        style={styles.addToCartBtn}
-                      >
-                        <Plus size={16} />
-                        Add
-                      </button>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Moto Clinic / Garage Services teaser banner (Only shown if Garage is INACTIVE) */}
-          {!SHOW_GARAGE_SERVICES && (
-            <div className="glass-panel animate-fade-in-up" style={styles.teaserBanner}>
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
-                <div style={{ ...styles.logoIcon, width: '48px', height: '48px' }}>
-                  <Wrench size={24} color="#fff" />
-                </div>
+                ))}
               </div>
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Spark Craft Clinic & Garage Servicing</h3>
-              <span style={{ fontSize: '0.8rem', background: 'rgba(17, 24, 39, 0.04)', color: 'var(--text-muted)', border: '1px solid rgba(17,24,39,0.1)', padding: '0.2rem 0.6rem', borderRadius: '4px', fontWeight: 'bold' }}>COMING SOON</span>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: '600px', margin: '1rem auto 0', lineHeight: '1.6' }}>
-                We are expanding our store! Professional diagnostic evaluations, suspension setups, and high-performance ECU mappings will be available in our clinic soon. Stay tuned!
-              </p>
-            </div>
-          )}
-        </section>
+            )}
 
-        {/* SECTION 4: Live Status Tracker (Only shown if Garage is Active) */}
-        {SHOW_GARAGE_SERVICES && (
-          <section id="tracking" className="animate-fade-in-up" style={styles.sectionSpacing}>
+            {/* Moto Clinic / Garage Services teaser banner (Only shown if Garage is INACTIVE) */}
+            {!SHOW_GARAGE_SERVICES && (
+              <div className="glass-panel animate-fade-in-up" style={styles.teaserBanner}>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+                  <div style={{ ...styles.logoIcon, width: '48px', height: '48px' }}>
+                    <Wrench size={24} color="#fff" />
+                  </div>
+                </div>
+                <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Spark Craft Clinic & Garage Servicing</h3>
+                <span style={{ fontSize: '0.8rem', background: 'rgba(17, 24, 39, 0.04)', color: 'var(--text-muted)', border: '1px solid rgba(17,24,39,0.1)', padding: '0.2rem 0.6rem', borderRadius: '4px', fontWeight: 'bold' }}>COMING SOON</span>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: '600px', margin: '1rem auto 0', lineHeight: '1.6' }}>
+                  We are expanding our store! Professional diagnostic evaluations, suspension setups, and high-performance ECU mappings will be available in our clinic soon. Stay tuned!
+                </p>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* SCREEN 4: Live Status Tracker (Only shown if Garage is Active) */}
+        {SHOW_GARAGE_SERVICES && activeTab === 'tracking' && (
+          <section className="animate-fade-in-up" style={styles.sectionSpacing}>
             <div style={styles.sectionHeader}>
               <span style={styles.sectionSubtitle}>TRACKER</span>
               <h2 style={styles.sectionTitle}>LIVE GARAGE STATUS</h2>
@@ -643,8 +638,8 @@ function App() {
         )}
 
         {/* SECTION 5: Book Service Slot (Only shown if Garage is Active) */}
-        {SHOW_GARAGE_SERVICES && (
-          <section id="book-service" className="animate-fade-in-up" style={{ ...styles.sectionSpacing, maxWidth: '720px', margin: '0 auto' }}>
+        {SHOW_GARAGE_SERVICES && activeTab === 'book' && (
+          <section className="animate-fade-in-up" style={{ ...styles.sectionSpacing, maxWidth: '720px', margin: '0 auto' }}>
             <div style={styles.sectionHeader}>
               <span style={styles.sectionSubtitle}>RESERVATION</span>
               <h2 style={styles.sectionTitle}>BOOK A SERVICE SLOT</h2>
@@ -665,7 +660,7 @@ function App() {
                   <span style={{ fontSize: '2rem', fontFamily: 'var(--font-heading)', fontWeight: '800', color: 'var(--primary)' }}>{bookingSuccessCode}</span>
                 </div>
                 <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1.5rem' }}>
-                  <button onClick={() => { scrollToSection('tracking'); setBookingSuccessCode(''); }} className="btn-primary">
+                  <button onClick={() => { switchScreen('tracking'); setBookingSuccessCode(''); }} className="btn-primary">
                     Track Live Progress
                   </button>
                   <button onClick={() => setBookingSuccessCode('')} className="btn-secondary">
@@ -999,8 +994,8 @@ const styles = {
     transition: 'all 0.3s ease'
   },
   sectionSpacing: {
-    paddingTop: '3rem',
-    marginBottom: '5rem'
+    paddingTop: '1rem',
+    marginBottom: '2rem'
   },
   heroSection: {
     display: 'grid',
