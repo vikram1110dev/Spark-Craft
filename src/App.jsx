@@ -1115,8 +1115,8 @@ const styles = {
   searchBox: {
     display: 'flex',
     alignItems: 'center',
-    background: 'rgba(17, 24, 39, 0.8)',
-    border: '1px solid var(--border)',
+    background: '#FFFFFF',
+    border: '1px solid rgba(17, 24, 39, 0.1)',
     borderRadius: '8px',
     paddingLeft: '1rem',
     width: '100%'
