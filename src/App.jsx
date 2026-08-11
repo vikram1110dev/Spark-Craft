@@ -17,7 +17,9 @@ import {
   TrendingUp, 
   Sparkles,
   ArrowRight,
-  AlertCircle
+  AlertCircle,
+  Mail,
+  Send
 } from 'lucide-react';
 import './App.css';
 import heroImg from './assets/hero.png';
@@ -99,6 +101,15 @@ function App() {
   });
   const [bookingSuccessCode, setBookingSuccessCode] = useState('');
 
+  // Contact Form State
+  const [contactData, setContactData] = useState({
+    name: '',
+    email: '',
+    subject: 'Parts Inquiry',
+    message: ''
+  });
+  const [contactSuccess, setContactSuccess] = useState(false);
+
   // Cart State
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -173,6 +184,18 @@ function App() {
 
     // Switch view to tracking screen
     switchScreen('tracking');
+  };
+
+  // Submit Contact Form
+  const handleContactSubmit = (e) => {
+    e.preventDefault();
+    setContactSuccess(true);
+    setContactData({
+      name: '',
+      email: '',
+      subject: 'Parts Inquiry',
+      message: ''
+    });
   };
 
   // Simulate advancing the status of a tracked booking for demo purposes
@@ -275,6 +298,12 @@ function App() {
                 Track Ride
               </button>
             )}
+            <button 
+              onClick={() => switchScreen('contact')} 
+              style={activeTab === 'contact' ? { ...styles.navLink, ...styles.navLinkActive } : styles.navLink}
+            >
+              Contact Us
+            </button>
           </div>
 
           <div style={styles.navActions}>
@@ -759,6 +788,127 @@ function App() {
                 </button>
               </form>
             )}
+          </section>
+        )}
+
+        {/* SCREEN 6: Contact Us */}
+        {activeTab === 'contact' && (
+          <section className="animate-fade-in-up" style={{ ...styles.sectionSpacing, maxWidth: '900px', margin: '0 auto' }}>
+            <div style={styles.sectionHeader}>
+              <span style={styles.sectionSubtitle}>CONTACT US</span>
+              <h2 style={styles.sectionTitle}>GET IN TOUCH WITH SPARK CRAFT</h2>
+              <p style={styles.sectionDesc}>Have inquiries about specific spare parts, stock levels, or order tracking? Drop us a message.</p>
+            </div>
+
+            <div style={styles.contactContainer}>
+              {/* Contact Information Cards */}
+              <div style={styles.contactInfoCol}>
+                <div className="glass-panel" style={styles.contactInfoCard}>
+                  <div style={styles.contactIconCircle}>
+                    <Phone size={20} color="var(--primary)" />
+                  </div>
+                  <div>
+                    <h4 style={{ fontSize: '1rem', fontWeight: 'bold' }}>Phone Support</h4>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: '0.25rem' }}>+1 (555) 019-2834</p>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Toll Free parts line</p>
+                  </div>
+                </div>
+
+                <div className="glass-panel" style={styles.contactInfoCard}>
+                  <div style={styles.contactIconCircle}>
+                    <Mail size={20} color="var(--primary)" />
+                  </div>
+                  <div>
+                    <h4 style={{ fontSize: '1rem', fontWeight: 'bold' }}>Email Address</h4>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: '0.25rem' }}>parts@sparkcraft.com</p>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Response in 24 hours</p>
+                  </div>
+                </div>
+
+                <div className="glass-panel" style={styles.contactInfoCard}>
+                  <div style={styles.contactIconCircle}>
+                    <MapPin size={20} color="var(--primary)" />
+                  </div>
+                  <div>
+                    <h4 style={{ fontSize: '1rem', fontWeight: 'bold' }}>HQ Warehouse</h4>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: '0.25rem' }}>482 Gearbox Alley, Speedville</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact Form Panel */}
+              <div className="glass-panel" style={{ flex: 1.3, padding: '2rem' }}>
+                {contactSuccess ? (
+                  <div className="animate-fade-in-up" style={{ textAlign: 'center', padding: '2rem 1rem' }}>
+                    <div style={{ ...styles.successCircle, marginBottom: '1rem' }}>
+                      <Check size={30} color="var(--success)" />
+                    </div>
+                    <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>Message Sent!</h3>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+                      Thank you for contacting Spark Craft. Our parts department will get back to you shortly.
+                    </p>
+                    <button onClick={() => setContactSuccess(false)} className="btn-secondary">
+                      Send Another Message
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleContactSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', textAlign: 'left' }}>Send Us a Message</h3>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', textAlign: 'left' }}>
+                      <label style={styles.formLabel}>Your Name</label>
+                      <input 
+                        type="text" 
+                        required 
+                        placeholder="e.g. Vikram Dev"
+                        value={contactData.name}
+                        onChange={(e) => setContactData({...contactData, name: e.target.value})}
+                      />
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', textAlign: 'left' }}>
+                      <label style={styles.formLabel}>Email Address</label>
+                      <input 
+                        type="email" 
+                        required 
+                        placeholder="e.g. vikram@example.com"
+                        value={contactData.email}
+                        onChange={(e) => setContactData({...contactData, email: e.target.value})}
+                      />
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', textAlign: 'left' }}>
+                      <label style={styles.formLabel}>Subject</label>
+                      <select 
+                        value={contactData.subject}
+                        onChange={(e) => setContactData({...contactData, subject: e.target.value})}
+                      >
+                        <option>Parts Availability Inquiry</option>
+                        <option>Bulk Order Discount</option>
+                        <option>Shipping & Delivery Status</option>
+                        <option>General Feedback</option>
+                      </select>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', textAlign: 'left' }}>
+                      <label style={styles.formLabel}>Message</label>
+                      <textarea 
+                        required 
+                        rows="4" 
+                        placeholder="Write your request details here..."
+                        value={contactData.message}
+                        onChange={(e) => setContactData({...contactData, message: e.target.value})}
+                      />
+                    </div>
+
+                    <button type="submit" className="btn-primary" style={{ justifyContent: 'center' }}>
+                      <Send size={16} />
+                      Send Message
+                    </button>
+                  </form>
+                )}
+              </div>
+            </div>
           </section>
         )}
 
@@ -1407,6 +1557,10 @@ const styles = {
     fontWeight: '700',
     marginBottom: '0.25rem'
   },
+  timelineDotActive: {
+    boxShadow: '0 0 16px var(--primary)',
+    borderColor: 'var(--primary)'
+  },
   timelineDesc: {
     fontSize: '0.65rem',
     color: 'var(--text-muted)',
@@ -1507,6 +1661,34 @@ const styles = {
     padding: '3rem 2rem',
     textAlign: 'center',
     marginTop: '4rem'
+  },
+  contactContainer: {
+    display: 'flex',
+    gap: '2.5rem',
+    marginTop: '2rem'
+  },
+  contactInfoCol: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1.5rem',
+    flex: 1,
+    textAlign: 'left'
+  },
+  contactInfoCard: {
+    padding: '1.5rem',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1rem'
+  },
+  contactIconCircle: {
+    width: '40px',
+    height: '40px',
+    borderRadius: '50%',
+    background: 'rgba(17, 24, 39, 0.04)',
+    border: '1px solid rgba(17, 24, 39, 0.08)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   footer: {
     borderTop: '1px solid var(--border)',
