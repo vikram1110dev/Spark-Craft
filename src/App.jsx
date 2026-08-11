@@ -22,6 +22,9 @@ import {
 import './App.css';
 import heroImg from './assets/hero.png';
 
+// CONFIG TOGGLE: Set to true to launch the Garage Services features in the future
+const SHOW_GARAGE_SERVICES = false;
+
 // Mock spare parts catalog data
 const INITIAL_SPARES = [
   { id: 1, name: 'Brembo Sintered Brake Pads', category: 'Brakes', price: 89.99, stock: 12, rating: 4.9, desc: 'High friction coefficient pads for maximum stopping power.' },
@@ -257,26 +260,30 @@ function App() {
               onClick={() => scrollToSection('home')} 
               style={activeTab === 'home' ? { ...styles.navLink, ...styles.navLinkActive } : styles.navLink}
             >
-              Garage
+              Store
             </button>
-            <button 
-              onClick={() => scrollToSection('services')} 
-              style={activeTab === 'services' ? { ...styles.navLink, ...styles.navLinkActive } : styles.navLink}
-            >
-              Services
-            </button>
+            {SHOW_GARAGE_SERVICES && (
+              <button 
+                onClick={() => scrollToSection('services')} 
+                style={activeTab === 'services' ? { ...styles.navLink, ...styles.navLinkActive } : styles.navLink}
+              >
+                Services
+              </button>
+            )}
             <button 
               onClick={() => scrollToSection('catalog')} 
               style={activeTab === 'catalog' ? { ...styles.navLink, ...styles.navLinkActive } : styles.navLink}
             >
               Spare Parts
             </button>
-            <button 
-              onClick={() => scrollToSection('tracking')} 
-              style={activeTab === 'tracking' ? { ...styles.navLink, ...styles.navLinkActive } : styles.navLink}
-            >
-              Track Ride
-            </button>
+            {SHOW_GARAGE_SERVICES && (
+              <button 
+                onClick={() => scrollToSection('tracking')} 
+                style={activeTab === 'tracking' ? { ...styles.navLink, ...styles.navLinkActive } : styles.navLink}
+              >
+                Track Ride
+              </button>
+            )}
           </div>
 
           <div style={styles.navActions}>
@@ -287,10 +294,12 @@ function App() {
               <ShoppingBag size={20} />
               {cart.length > 0 && <span style={styles.cartCount}>{cart.reduce((a, c) => a + c.qty, 0)}</span>}
             </button>
-            <button onClick={() => scrollToSection('book-service')} style={styles.navCTA}>
-              <Calendar size={16} />
-              Book Slot
-            </button>
+            {SHOW_GARAGE_SERVICES && (
+              <button onClick={() => scrollToSection('book-service')} style={styles.navCTA}>
+                <Calendar size={16} />
+                Book Slot
+              </button>
+            )}
           </div>
         </div>
       </nav>
@@ -305,22 +314,40 @@ function App() {
             <div style={styles.heroContent}>
               <div style={styles.badgeRow}>
                 <Sparkles size={16} color="var(--primary)" />
-                <span>PREMIUM MOTORCYCLE CARE & SPARE PARTS</span>
+                <span>{SHOW_GARAGE_SERVICES ? 'PREMIUM MOTORCYCLE CARE & SPARE PARTS' : '100% GENUINE MOTORCYCLE SPARE PARTS'}</span>
               </div>
               <h1 style={styles.heroTitle}>
-                KEEP YOUR MACHINE <br />
-                <span style={{ color: 'var(--primary)' }}>AT PEAK PERFORMANCE</span>
+                {SHOW_GARAGE_SERVICES ? (
+                  <>
+                    KEEP YOUR MACHINE <br />
+                    <span style={{ color: 'var(--primary)' }}>AT PEAK PERFORMANCE</span>
+                  </>
+                ) : (
+                  <>
+                    PREMIUM GENUINE <br />
+                    <span style={{ color: 'var(--primary)' }}>MOTORCYCLE SPARES</span>
+                  </>
+                )}
               </h1>
               <p style={styles.heroDescription}>
-                Spark Craft is your absolute destination for high-end track tuning, daily general maintenance, and 100% genuine motorcycle spares. Book your expert slot in seconds.
+                {SHOW_GARAGE_SERVICES 
+                  ? 'Spark Craft is your absolute destination for high-end track tuning, daily general maintenance, and 100% genuine motorcycle spares. Book your expert slot in seconds.'
+                  : 'Spark Craft is your destination for premium quality, factory-approved motorcycle spares and accessories. Keep your ride authentic and running at maximum potential.'}
               </p>
               <div style={styles.heroButtonRow}>
-                <button onClick={() => scrollToSection('book-service')} className="btn-primary">
-                  <Calendar size={18} />
-                  Book Service Now
-                </button>
-                <button onClick={() => scrollToSection('catalog')} className="btn-secondary">
-                  Browse Genuine Spares
+                {SHOW_GARAGE_SERVICES ? (
+                  <button onClick={() => scrollToSection('book-service')} className="btn-primary">
+                    <Calendar size={18} />
+                    Book Service Now
+                  </button>
+                ) : (
+                  <button onClick={() => scrollToSection('catalog')} className="btn-primary">
+                    <ShoppingBag size={18} />
+                    Explore Spares Catalog
+                  </button>
+                )}
+                <button onClick={SHOW_GARAGE_SERVICES ? () => scrollToSection('catalog') : () => setIsCartOpen(true)} className="btn-secondary">
+                  {SHOW_GARAGE_SERVICES ? 'Browse Genuine Spares' : 'View Shopping Cart'}
                   <ArrowRight size={18} />
                 </button>
               </div>
@@ -338,8 +365,8 @@ function App() {
           <div style={styles.metricGrid}>
             <div className="glass-panel" style={styles.metricCard}>
               <TrendingUp size={24} color="var(--primary)" />
-              <h3 style={styles.metricVal}>1,200+</h3>
-              <p style={styles.metricLabel}>Machines Tuned</p>
+              <h3 style={styles.metricVal}>{SHOW_GARAGE_SERVICES ? '1,200+' : '4,500+'}</h3>
+              <p style={styles.metricLabel}>{SHOW_GARAGE_SERVICES ? 'Machines Tuned' : 'Orders Shipped'}</p>
             </div>
             <div className="glass-panel" style={styles.metricCard}>
               <ShieldCheck size={24} color="var(--success)" />
@@ -348,84 +375,88 @@ function App() {
             </div>
             <div className="glass-panel" style={styles.metricCard}>
               <Clock size={24} color="var(--info)" />
-              <h3 style={styles.metricVal}>Same-Day</h3>
-              <p style={styles.metricLabel}>Express Fluids & Inspection</p>
+              <h3 style={styles.metricVal}>{SHOW_GARAGE_SERVICES ? 'Same-Day' : 'Fast-Track'}</h3>
+              <p style={styles.metricLabel}>{SHOW_GARAGE_SERVICES ? 'Express Fluids & Inspection' : 'Delivery & Secure Dispatch'}</p>
             </div>
           </div>
 
-          {/* Fast tracking & shortcut */}
-          <div className="glass-panel" style={styles.quickTrackPanel}>
-            <div>
-              <h3 style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>Track Current Service Status</h3>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Have a service code (e.g. SC-77301)? Look up diagnostics status instantly.</p>
+          {/* Fast tracking & shortcut (Only shown if Garage is Active) */}
+          {SHOW_GARAGE_SERVICES && (
+            <div className="glass-panel" style={styles.quickTrackPanel}>
+              <div>
+                <h3 style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>Track Current Service Status</h3>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Have a service code (e.g. SC-77301)? Look up diagnostics status instantly.</p>
+              </div>
+              <form onSubmit={handleTrackSubmit} style={styles.quickTrackForm}>
+                <input 
+                  type="text" 
+                  placeholder="Enter Code (e.g. SC-77301)"
+                  value={searchTrackingCode}
+                  onChange={(e) => setSearchTrackingCode(e.target.value)}
+                  style={styles.quickTrackInput}
+                />
+                <button type="submit" className="btn-primary" style={{ height: '100%' }}>
+                  Track
+                </button>
+              </form>
             </div>
-            <form onSubmit={handleTrackSubmit} style={styles.quickTrackForm}>
-              <input 
-                type="text" 
-                placeholder="Enter Code (e.g. SC-77301)"
-                value={searchTrackingCode}
-                onChange={(e) => setSearchTrackingCode(e.target.value)}
-                style={styles.quickTrackInput}
-              />
-              <button type="submit" className="btn-primary" style={{ height: '100%' }}>
-                Track
+          )}
+        </section>
+
+        {/* SECTION 2: Services (Only shown if Garage is Active) */}
+        {SHOW_GARAGE_SERVICES && (
+          <section id="services" className="animate-fade-in-up" style={styles.sectionSpacing}>
+            <div style={styles.sectionHeader}>
+              <span style={styles.sectionSubtitle}>CLINIC SERVICES</span>
+              <h2 style={styles.sectionTitle}>PROFESSIONAL MOTORCYCLE CARE</h2>
+              <p style={styles.sectionDesc}>Our certified technicians use cutting edge tools to maintain, diagnose, and repair superbikes and commuter rides alike.</p>
+            </div>
+
+            <div style={styles.serviceGrid}>
+              <div className="glass-panel" style={styles.serviceCard}>
+                <div style={styles.serviceIconContainer}>
+                  <Wrench size={24} color="var(--primary)" />
+                </div>
+                <h3 style={styles.serviceCardTitle}>General Tune-up & Inspection</h3>
+                <p style={styles.serviceCardText}>Comprehensive 32-point inspection, chain adjustments, Spark plugs check, oil replacement, filter cleaning, and clutch wire adjustment.</p>
+                <span style={styles.serviceCardPrice}>Starting at $49.00</span>
+              </div>
+
+              <div className="glass-panel" style={styles.serviceCard}>
+                <div style={styles.serviceIconContainer}>
+                  <Settings size={24} color="var(--primary)" />
+                </div>
+                <h3 style={styles.serviceCardTitle}>Performance ECU Tuning</h3>
+                <p style={styles.serviceCardText}>Custom fuel mapping, ignition curve optimization, dyno runs, throttle response adjustments, and speed limiter configuration.</p>
+                <span style={styles.serviceCardPrice}>Starting at $149.00</span>
+              </div>
+
+              <div className="glass-panel" style={styles.serviceCard}>
+                <div style={styles.serviceIconContainer}>
+                  <ShieldCheck size={24} color="var(--primary)" />
+                </div>
+                <h3 style={styles.serviceCardTitle}>Brake System Overhaul</h3>
+                <p style={styles.serviceCardText}>Brembo pad replacements, rotor resurfacing, brake fluid flush, master cylinder rebuild, and pressure testing for supreme safety.</p>
+                <span style={styles.serviceCardPrice}>Starting at $39.00</span>
+              </div>
+
+              <div className="glass-panel" style={styles.serviceCard}>
+                <div style={styles.serviceIconContainer}>
+                  <TrendingUp size={24} color="var(--primary)" />
+                </div>
+                <h3 style={styles.serviceCardTitle}>Suspension Tuning & Seals</h3>
+                <p style={styles.serviceCardText}>Sag calibration for riders weight, rebuild front forks, dust and oil seals replacements, rear shock overhaul, and damping setup.</p>
+                <span style={styles.serviceCardPrice}>Starting at $89.00</span>
+              </div>
+            </div>
+            
+            <div style={{ textAlign: 'center', marginTop: '3rem' }}>
+              <button onClick={() => scrollToSection('book-service')} className="btn-primary">
+                Book An Appointment
               </button>
-            </form>
-          </div>
-        </section>
-
-        {/* SECTION 2: Services */}
-        <section id="services" className="animate-fade-in-up" style={styles.sectionSpacing}>
-          <div style={styles.sectionHeader}>
-            <span style={styles.sectionSubtitle}>CLINIC SERVICES</span>
-            <h2 style={styles.sectionTitle}>PROFESSIONAL MOTORCYCLE CARE</h2>
-            <p style={styles.sectionDesc}>Our certified technicians use cutting edge tools to maintain, diagnose, and repair superbikes and commuter rides alike.</p>
-          </div>
-
-          <div style={styles.serviceGrid}>
-            <div className="glass-panel" style={styles.serviceCard}>
-              <div style={styles.serviceIconContainer}>
-                <Wrench size={24} color="var(--primary)" />
-              </div>
-              <h3 style={styles.serviceCardTitle}>General Tune-up & Inspection</h3>
-              <p style={styles.serviceCardText}>Comprehensive 32-point inspection, chain adjustments, Spark plugs check, oil replacement, filter cleaning, and clutch wire adjustment.</p>
-              <span style={styles.serviceCardPrice}>Starting at $49.00</span>
             </div>
-
-            <div className="glass-panel" style={styles.serviceCard}>
-              <div style={styles.serviceIconContainer}>
-                <Settings size={24} color="var(--primary)" />
-              </div>
-              <h3 style={styles.serviceCardTitle}>Performance ECU Tuning</h3>
-              <p style={styles.serviceCardText}>Custom fuel mapping, ignition curve optimization, dyno runs, throttle response adjustments, and speed limiter configuration.</p>
-              <span style={styles.serviceCardPrice}>Starting at $149.00</span>
-            </div>
-
-            <div className="glass-panel" style={styles.serviceCard}>
-              <div style={styles.serviceIconContainer}>
-                <ShieldCheck size={24} color="var(--primary)" />
-              </div>
-              <h3 style={styles.serviceCardTitle}>Brake System Overhaul</h3>
-              <p style={styles.serviceCardText}>Brembo pad replacements, rotor resurfacing, brake fluid flush, master cylinder rebuild, and pressure testing for supreme safety.</p>
-              <span style={styles.serviceCardPrice}>Starting at $39.00</span>
-            </div>
-
-            <div className="glass-panel" style={styles.serviceCard}>
-              <div style={styles.serviceIconContainer}>
-                <TrendingUp size={24} color="var(--primary)" />
-              </div>
-              <h3 style={styles.serviceCardTitle}>Suspension Tuning & Seals</h3>
-              <p style={styles.serviceCardText}>Sag calibration for riders weight, rebuild front forks, dust and oil seals replacements, rear shock overhaul, and damping setup.</p>
-              <span style={styles.serviceCardPrice}>Starting at $89.00</span>
-            </div>
-          </div>
-          
-          <div style={{ textAlign: 'center', marginTop: '3rem' }}>
-            <button onClick={() => scrollToSection('book-service')} className="btn-primary">
-              Book An Appointment
-            </button>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* SECTION 3: Spare Parts Shop */}
         <section id="catalog" className="animate-fade-in-up" style={styles.sectionSpacing}>
@@ -495,226 +526,246 @@ function App() {
               ))}
             </div>
           )}
-        </section>
 
-        {/* SECTION 4: Live Status Tracker */}
-        <section id="tracking" className="animate-fade-in-up" style={styles.sectionSpacing}>
-          <div style={styles.sectionHeader}>
-            <span style={styles.sectionSubtitle}>TRACKER</span>
-            <h2 style={styles.sectionTitle}>LIVE GARAGE STATUS</h2>
-            <p style={styles.sectionDesc}>Watch the status of your machine live as technicians work. Search using your unique Spark Craft booking code.</p>
-          </div>
-
-          <div style={{ maxWidth: '640px', margin: '0 auto 2.5rem' }}>
-            <form onSubmit={handleTrackSubmit} style={styles.trackFormLarge}>
-              <input 
-                type="text" 
-                placeholder="Enter Code (try: SC-77301)"
-                value={searchTrackingCode}
-                onChange={(e) => setSearchTrackingCode(e.target.value)}
-                style={styles.trackInputLarge}
-              />
-              <button type="submit" className="btn-primary">
-                Track Ride
-              </button>
-            </form>
-          </div>
-
-          {trackedBooking ? (
-            <div className="glass-panel animate-fade-in-up" style={styles.trackerContainer}>
-              {/* Developer Demo Tooltip */}
-              <div style={styles.demoBanner}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <Sparkles size={16} color="var(--primary)" />
-                  <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>DEMO SIMULATION TOOL</span>
-                </div>
-                <button onClick={advanceTrackedStatus} className="btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}>
-                  Simulate Status Step Forward
-                </button>
-              </div>
-
-              <div style={styles.trackerHeader}>
-                <div>
-                  <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{trackedBooking.code}</span>
-                  <h3 style={{ fontSize: '1.5rem', marginTop: '0.25rem' }}>{trackedBooking.bikeModel}</h3>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Owner</span>
-                  <p style={{ fontWeight: '600' }}>{trackedBooking.name}</p>
+          {/* Moto Clinic / Garage Services teaser banner (Only shown if Garage is INACTIVE) */}
+          {!SHOW_GARAGE_SERVICES && (
+            <div className="glass-panel animate-fade-in-up" style={styles.teaserBanner}>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+                <div style={{ ...styles.logoIcon, width: '48px', height: '48px' }}>
+                  <Wrench size={24} color="#fff" />
                 </div>
               </div>
-
-              <div style={styles.trackerMetaRow}>
-                <div>
-                  <span style={styles.metaLabel}>SERVICE TYPE</span>
-                  <p style={styles.metaValue}>{trackedBooking.serviceType}</p>
-                </div>
-                <div>
-                  <span style={styles.metaLabel}>APPOINTMENT SLOT</span>
-                  <p style={styles.metaValue}>{trackedBooking.date} at {trackedBooking.time}</p>
-                </div>
-              </div>
-
-              {trackedBooking.notes && (
-                <div style={styles.notesBlock}>
-                  <span style={styles.metaLabel}>SYMPTOMS & NOTES</span>
-                  <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>"{trackedBooking.notes}"</p>
-                </div>
-              )}
-
-              {/* Progress bar and nodes */}
-              <div style={styles.timelineContainer}>
-                {STATUS_STEPS.map((step, idx) => {
-                  const isCompleted = idx <= trackedBooking.statusIndex;
-                  const isActive = idx === trackedBooking.statusIndex;
-                  return (
-                    <div key={step.key} style={styles.timelineStep}>
-                      <div style={{
-                        ...styles.timelineDot,
-                        backgroundColor: isCompleted ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
-                        borderColor: isActive ? 'var(--primary)' : isCompleted ? 'var(--primary)' : 'var(--border)',
-                        boxShadow: isActive ? '0 0 16px var(--primary)' : 'none'
-                      }}>
-                        {isCompleted ? <Check size={14} color="#fff" /> : <span>{idx + 1}</span>}
-                      </div>
-                      <div style={styles.timelineLabel}>{step.label}</div>
-                      <div style={styles.timelineDesc}>{step.desc}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ) : (
-            <div className="glass-panel" style={styles.noSearchPanel}>
-              <AlertCircle size={36} color="var(--text-muted)" style={{ marginBottom: '0.5rem' }} />
-              <h3>No active tracking lookup.</h3>
-              <p style={{ color: 'var(--text-muted)' }}>Enter one of the demo booking codes (like <strong>SC-77301</strong> or <strong>SC-12402</strong>) above to test the interactive status simulation!</p>
-            </div>
-          )}
-        </section>
-
-        {/* SECTION 5: Book Service Slot */}
-        <section id="book-service" className="animate-fade-in-up" style={{ ...styles.sectionSpacing, maxWidth: '720px', margin: '0 auto' }}>
-          <div style={styles.sectionHeader}>
-            <span style={styles.sectionSubtitle}>RESERVATION</span>
-            <h2 style={styles.sectionTitle}>BOOK A SERVICE SLOT</h2>
-            <p style={styles.sectionDesc}>Fill in your details below. We will assign you a tracking code immediately to watch updates in real time.</p>
-          </div>
-
-          {bookingSuccessCode ? (
-            <div className="glass-panel animate-fade-in-up" style={styles.bookingSuccessPanel}>
-              <div style={styles.successCircle}>
-                <Check size={36} color="var(--success)" />
-              </div>
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Booking Confirmed!</h3>
-              <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
-                Your appointment slot has been successfully locked. Use the tracking code below in the 'Track Ride' panel to watch real-time diagnostics.
+              <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Spark Craft Clinic & Garage Servicing</h3>
+              <span style={{ fontSize: '0.8rem', background: 'rgba(17, 24, 39, 0.04)', color: 'var(--text-muted)', border: '1px solid rgba(17,24,39,0.1)', padding: '0.2rem 0.6rem', borderRadius: '4px', fontWeight: 'bold' }}>COMING SOON</span>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: '600px', margin: '1rem auto 0', lineHeight: '1.6' }}>
+                We are expanding our store! Professional diagnostic evaluations, suspension setups, and high-performance ECU mappings will be available in our clinic soon. Stay tuned!
               </p>
-              <div style={styles.codeBanner}>
-                <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>TRACKING CODE</span>
-                <span style={{ fontSize: '2rem', fontFamily: 'var(--font-heading)', fontWeight: '800', color: 'var(--primary)' }}>{bookingSuccessCode}</span>
-              </div>
-              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1.5rem' }}>
-                <button onClick={() => { scrollToSection('tracking'); setBookingSuccessCode(''); }} className="btn-primary">
-                  Track Live Progress
-                </button>
-                <button onClick={() => setBookingSuccessCode('')} className="btn-secondary">
-                  Book Another Slot
-                </button>
-              </div>
             </div>
-          ) : (
-            <form onSubmit={handleBookingSubmit} className="glass-panel" style={styles.bookingForm}>
-              <div style={styles.formRow}>
-                <div style={styles.formGroup}>
-                  <label style={styles.formLabel}>Full Name</label>
-                  <input 
-                    type="text" 
-                    required 
-                    placeholder="e.g. Vikram Dev"
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  />
-                </div>
-                <div style={styles.formGroup}>
-                  <label style={styles.formLabel}>Phone Number</label>
-                  <input 
-                    type="tel" 
-                    required 
-                    placeholder="e.g. 9876543210"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                  />
-                </div>
-              </div>
-
-              <div style={styles.formRow}>
-                <div style={styles.formGroup}>
-                  <label style={styles.formLabel}>Motorcycle Model</label>
-                  <input 
-                    type="text" 
-                    required 
-                    placeholder="e.g. Yamaha YZF-R1 or Duke 390"
-                    value={formData.bikeModel}
-                    onChange={(e) => setFormData({...formData, bikeModel: e.target.value})}
-                  />
-                </div>
-                <div style={styles.formGroup}>
-                  <label style={styles.formLabel}>Service Category</label>
-                  <select 
-                    value={formData.serviceType}
-                    onChange={(e) => setFormData({...formData, serviceType: e.target.value})}
-                  >
-                    <option>General Diagnostics & Tuning</option>
-                    <option>Performance ECU Tuning</option>
-                    <option>Suspension Tuning & Fork seals</option>
-                    <option>Braking System Overhaul</option>
-                    <option>Complete Fluid & Engine Flush</option>
-                  </select>
-                </div>
-              </div>
-
-              <div style={styles.formRow}>
-                <div style={styles.formGroup}>
-                  <label style={styles.formLabel}>Preferred Date</label>
-                  <input 
-                    type="date" 
-                    required
-                    value={formData.date}
-                    onChange={(e) => setFormData({...formData, date: e.target.value})}
-                  />
-                </div>
-                <div style={styles.formGroup}>
-                  <label style={styles.formLabel}>Preferred Time Slot</label>
-                  <select 
-                    value={formData.time}
-                    onChange={(e) => setFormData({...formData, time: e.target.value})}
-                  >
-                    <option>09:00 AM - 11:30 AM</option>
-                    <option>11:30 AM - 02:00 PM</option>
-                    <option>02:30 PM - 05:00 PM</option>
-                    <option>05:00 PM - 07:30 PM</option>
-                  </select>
-                </div>
-              </div>
-
-              <div style={styles.formGroup}>
-                <label style={styles.formLabel}>Special Notes / Diagnostics Symptoms</label>
-                <textarea 
-                  rows="3" 
-                  placeholder="Provide any details e.g. front brake squeaks, check transmission fluid, hard cold start..."
-                  value={formData.notes}
-                  onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                />
-              </div>
-
-              <button type="submit" className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-                <Calendar size={18} />
-                Confirm and Book Appointment
-              </button>
-            </form>
           )}
         </section>
+
+        {/* SECTION 4: Live Status Tracker (Only shown if Garage is Active) */}
+        {SHOW_GARAGE_SERVICES && (
+          <section id="tracking" className="animate-fade-in-up" style={styles.sectionSpacing}>
+            <div style={styles.sectionHeader}>
+              <span style={styles.sectionSubtitle}>TRACKER</span>
+              <h2 style={styles.sectionTitle}>LIVE GARAGE STATUS</h2>
+              <p style={styles.sectionDesc}>Watch the status of your machine live as technicians work. Search using your unique Spark Craft booking code.</p>
+            </div>
+
+            <div style={{ maxWidth: '640px', margin: '0 auto 2.5rem' }}>
+              <form onSubmit={handleTrackSubmit} style={styles.trackFormLarge}>
+                <input 
+                  type="text" 
+                  placeholder="Enter Code (try: SC-77301)"
+                  value={searchTrackingCode}
+                  onChange={(e) => setSearchTrackingCode(e.target.value)}
+                  style={styles.trackInputLarge}
+                />
+                <button type="submit" className="btn-primary">
+                  Track Ride
+                </button>
+              </form>
+            </div>
+
+            {trackedBooking ? (
+              <div className="glass-panel animate-fade-in-up" style={styles.trackerContainer}>
+                {/* Developer Demo Tooltip */}
+                <div style={styles.demoBanner}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Sparkles size={16} color="var(--primary)" />
+                    <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>DEMO SIMULATION TOOL</span>
+                  </div>
+                  <button onClick={advanceTrackedStatus} className="btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}>
+                    Simulate Status Step Forward
+                  </button>
+                </div>
+
+                <div style={styles.trackerHeader}>
+                  <div>
+                    <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{trackedBooking.code}</span>
+                    <h3 style={{ fontSize: '1.5rem', marginTop: '0.25rem' }}>{trackedBooking.bikeModel}</h3>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Owner</span>
+                    <p style={{ fontWeight: '600' }}>{trackedBooking.name}</p>
+                  </div>
+                </div>
+
+                <div style={styles.trackerMetaRow}>
+                  <div>
+                    <span style={styles.metaLabel}>SERVICE TYPE</span>
+                    <p style={styles.metaValue}>{trackedBooking.serviceType}</p>
+                  </div>
+                  <div>
+                    <span style={styles.metaLabel}>APPOINTMENT SLOT</span>
+                    <p style={styles.metaValue}>{trackedBooking.date} at {trackedBooking.time}</p>
+                  </div>
+                </div>
+
+                {trackedBooking.notes && (
+                  <div style={styles.notesBlock}>
+                    <span style={styles.metaLabel}>SYMPTOMS & NOTES</span>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>"{trackedBooking.notes}"</p>
+                  </div>
+                )}
+
+                {/* Progress bar and nodes */}
+                <div style={styles.timelineContainer}>
+                  {STATUS_STEPS.map((step, idx) => {
+                    const isCompleted = idx <= trackedBooking.statusIndex;
+                    const isActive = idx === trackedBooking.statusIndex;
+                    return (
+                      <div key={step.key} style={styles.timelineStep}>
+                        <div style={{
+                          ...styles.timelineDot,
+                          backgroundColor: isCompleted ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
+                          borderColor: isActive ? 'var(--primary)' : isCompleted ? 'var(--primary)' : 'var(--border)',
+                          boxShadow: isActive ? '0 0 16px var(--primary)' : 'none'
+                        }}>
+                          {isCompleted ? <Check size={14} color="#fff" /> : <span>{idx + 1}</span>}
+                        </div>
+                        <div style={styles.timelineLabel}>{step.label}</div>
+                        <div style={styles.timelineDesc}>{step.desc}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="glass-panel" style={styles.noSearchPanel}>
+                <AlertCircle size={36} color="var(--text-muted)" style={{ marginBottom: '0.5rem' }} />
+                <h3>No active tracking lookup.</h3>
+                <p style={{ color: 'var(--text-muted)' }}>Enter one of the demo booking codes (like <strong>SC-77301</strong> or <strong>SC-12402</strong>) above to test the interactive status simulation!</p>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* SECTION 5: Book Service Slot (Only shown if Garage is Active) */}
+        {SHOW_GARAGE_SERVICES && (
+          <section id="book-service" className="animate-fade-in-up" style={{ ...styles.sectionSpacing, maxWidth: '720px', margin: '0 auto' }}>
+            <div style={styles.sectionHeader}>
+              <span style={styles.sectionSubtitle}>RESERVATION</span>
+              <h2 style={styles.sectionTitle}>BOOK A SERVICE SLOT</h2>
+              <p style={styles.sectionDesc}>Fill in your details below. We will assign you a tracking code immediately to watch updates in real time.</p>
+            </div>
+
+            {bookingSuccessCode ? (
+              <div className="glass-panel animate-fade-in-up" style={styles.bookingSuccessPanel}>
+                <div style={styles.successCircle}>
+                  <Check size={36} color="var(--success)" />
+                </div>
+                <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Booking Confirmed!</h3>
+                <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
+                  Your appointment slot has been successfully locked. Use the tracking code below in the 'Track Ride' panel to watch real-time diagnostics.
+                </p>
+                <div style={styles.codeBanner}>
+                  <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>TRACKING CODE</span>
+                  <span style={{ fontSize: '2rem', fontFamily: 'var(--font-heading)', fontWeight: '800', color: 'var(--primary)' }}>{bookingSuccessCode}</span>
+                </div>
+                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1.5rem' }}>
+                  <button onClick={() => { scrollToSection('tracking'); setBookingSuccessCode(''); }} className="btn-primary">
+                    Track Live Progress
+                  </button>
+                  <button onClick={() => setBookingSuccessCode('')} className="btn-secondary">
+                    Book Another Slot
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleBookingSubmit} className="glass-panel" style={styles.bookingForm}>
+                <div style={styles.formRow}>
+                  <div style={styles.formGroup}>
+                    <label style={styles.formLabel}>Full Name</label>
+                    <input 
+                      type="text" 
+                      required 
+                      placeholder="e.g. Vikram Dev"
+                      value={formData.name}
+                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    />
+                  </div>
+                  <div style={styles.formGroup}>
+                    <label style={styles.formLabel}>Phone Number</label>
+                    <input 
+                      type="tel" 
+                      required 
+                      placeholder="e.g. 9876543210"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    />
+                  </div>
+                </div>
+
+                <div style={styles.formRow}>
+                  <div style={styles.formGroup}>
+                    <label style={styles.formLabel}>Motorcycle Model</label>
+                    <input 
+                      type="text" 
+                      required 
+                      placeholder="e.g. Yamaha YZF-R1 or Duke 390"
+                      value={formData.bikeModel}
+                      onChange={(e) => setFormData({...formData, bikeModel: e.target.value})}
+                    />
+                  </div>
+                  <div style={styles.formGroup}>
+                    <label style={styles.formLabel}>Service Category</label>
+                    <select 
+                      value={formData.serviceType}
+                      onChange={(e) => setFormData({...formData, serviceType: e.target.value})}
+                    >
+                      <option>General Diagnostics & Tuning</option>
+                      <option>Performance ECU Tuning</option>
+                      <option>Suspension Tuning & Fork seals</option>
+                      <option>Braking System Overhaul</option>
+                      <option>Complete Fluid & Engine Flush</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div style={styles.formRow}>
+                  <div style={styles.formGroup}>
+                    <label style={styles.formLabel}>Preferred Date</label>
+                    <input 
+                      type="date" 
+                      required
+                      value={formData.date}
+                      onChange={(e) => setFormData({...formData, date: e.target.value})}
+                    />
+                  </div>
+                  <div style={styles.formGroup}>
+                    <label style={styles.formLabel}>Preferred Time Slot</label>
+                    <select 
+                      value={formData.time}
+                      onChange={(e) => setFormData({...formData, time: e.target.value})}
+                    >
+                      <option>09:00 AM - 11:30 AM</option>
+                      <option>11:30 AM - 02:00 PM</option>
+                      <option>02:30 PM - 05:00 PM</option>
+                      <option>05:00 PM - 07:30 PM</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>Special Notes / Diagnostics Symptoms</label>
+                  <textarea 
+                    rows="3" 
+                    placeholder="Provide any details e.g. front brake squeaks, check transmission fluid, hard cold start..."
+                    value={formData.notes}
+                    onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                  />
+                </div>
+
+                <button type="submit" className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
+                  <Calendar size={18} />
+                  Confirm and Book Appointment
+                </button>
+              </form>
+            )}
+          </section>
+        )}
 
       </main>
 
@@ -796,13 +847,13 @@ function App() {
           </div>
 
           <div>
-            <h4 style={{ color: 'var(--text-main)', marginBottom: '1rem', fontSize: '1rem' }}>Workshop Timings</h4>
+            <h4 style={{ color: 'var(--text-main)', marginBottom: '1rem', fontSize: '1rem' }}>Store Timings</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <Clock size={14} color="var(--primary)" />
                 <span>Mon - Sat: 9:00 AM - 7:30 PM</span>
               </div>
-              <div>Sunday: Closed for Track Riding</div>
+              <div>Sunday: Closed</div>
             </div>
           </div>
 
@@ -1453,6 +1504,14 @@ const styles = {
     padding: '1.5rem',
     borderTop: '1px solid var(--border)',
     background: 'rgba(255,255,255,0.01)'
+  },
+  teaserBanner: {
+    background: 'rgba(17, 24, 39, 0.02)',
+    border: '1px dashed rgba(17, 24, 39, 0.12)',
+    borderRadius: '16px',
+    padding: '3rem 2rem',
+    textAlign: 'center',
+    marginTop: '4rem'
   },
   footer: {
     borderTop: '1px solid var(--border)',
