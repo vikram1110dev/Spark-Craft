@@ -19,15 +19,20 @@ import {
   ArrowRight,
   AlertCircle,
   Mail,
-  Send
+  Send,
+  Lock,
+  Unlock,
+  LogOut,
+  Sliders,
+  DollarSign,
+  Package,
+  Layers,
+  Inbox
 } from 'lucide-react';
 import './App.css';
 import heroImg from './assets/hero.png';
 
-// CONFIG TOGGLE: Set to true to launch the Garage Services features in the future
-const SHOW_GARAGE_SERVICES = false;
-
-// Mock spare parts catalog data
+// Initial Mock spare parts catalog data
 const INITIAL_SPARES = [
   { id: 1, name: 'Brembo Sintered Brake Pads', category: 'Brakes', price: 89.99, stock: 12, rating: 4.9, desc: 'High friction coefficient pads for maximum stopping power.' },
   { id: 2, name: 'NGK Iridium IX Spark Plug (Pack of 4)', category: 'Engine', price: 45.50, stock: 8, rating: 4.8, desc: 'Designed specifically for high-performance motorcycle engines.' },
@@ -75,9 +80,35 @@ const INITIAL_BOOKINGS = [
   }
 ];
 
+// Mock initial enquiries
+const INITIAL_ENQUIRIES = [
+  { id: 1, name: 'Alex Hunter', email: 'alex@example.com', subject: 'Parts Availability Inquiry', message: 'Do you have fork seals for a 2021 Kawasaki Ninja 400 in stock?', resolved: false },
+  { id: 2, name: 'Sarah Connor', email: 'sarah@example.com', subject: 'Bulk Order Discount', message: 'Looking to purchase 10 packs of NGK Iridium spark plugs. Do you offer bulk trade discounts?', resolved: true }
+];
+
 function App() {
   // Navigation active tab (highlighter)
   const [activeTab, setActiveTab] = useState('home');
+
+  // SHOW_GARAGE_SERVICES state (controlled by admin dashboard!)
+  const [showGarage, setShowGarage] = useState(() => {
+    const saved = localStorage.getItem('spark_show_garage');
+    return saved ? JSON.parse(saved) : false;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('spark_show_garage', JSON.stringify(showGarage));
+  }, [showGarage]);
+
+  // Spares store inventory state
+  const [spares, setSpares] = useState(() => {
+    const saved = localStorage.getItem('spark_spares');
+    return saved ? JSON.parse(saved) : INITIAL_SPARES;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('spark_spares', JSON.stringify(spares));
+  }, [spares]);
 
   // Bookings state
   const [bookings, setBookings] = useState(() => {
@@ -88,6 +119,21 @@ function App() {
   useEffect(() => {
     localStorage.setItem('spark_bookings', JSON.stringify(bookings));
   }, [bookings]);
+
+  // Customer enquiries state
+  const [enquiries, setEnquiries] = useState(() => {
+    const saved = localStorage.getItem('spark_enquiries');
+    return saved ? JSON.parse(saved) : INITIAL_ENQUIRIES;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('spark_enquiries', JSON.stringify(enquiries));
+  }, [enquiries]);
+
+  // Admin Authentication State
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  const [adminCredentials, setAdminCredentials] = useState({ email: '', password: '' });
+  const [adminLoginError, setAdminLoginError] = useState('');
 
   // Booking Form State
   const [formData, setFormData] = useState({
@@ -105,7 +151,7 @@ function App() {
   const [contactData, setContactData] = useState({
     name: '',
     email: '',
-    subject: 'Parts Inquiry',
+    subject: 'Parts Availability Inquiry',
     message: ''
   });
   const [contactSuccess, setContactSuccess] = useState(false);
@@ -120,7 +166,16 @@ function App() {
 
   // Tracking Code Input
   const [searchTrackingCode, setSearchTrackingCode] = useState('SC-77301');
-  const [trackedBooking, setTrackedBooking] = useState(INITIAL_BOOKINGS[0]);
+  const [trackedBooking, setTrackedBooking] = useState(bookings[0]);
+
+  // Admin New Part Form State
+  const [newPartData, setNewPartData] = useState({
+    name: '',
+    category: 'Engine',
+    price: '',
+    stock: '',
+    desc: ''
+  });
 
   // Cart helper functions
   const addToCart = (part) => {
@@ -189,32 +244,22 @@ function App() {
   // Submit Contact Form
   const handleContactSubmit = (e) => {
     e.preventDefault();
+    const newEnquiry = {
+      id: Date.now(),
+      name: contactData.name,
+      email: contactData.email,
+      subject: contactData.subject,
+      message: contactData.message,
+      resolved: false
+    };
+    setEnquiries(prev => [newEnquiry, ...prev]);
     setContactSuccess(true);
     setContactData({
       name: '',
       email: '',
-      subject: 'Parts Inquiry',
+      subject: 'Parts Availability Inquiry',
       message: ''
     });
-  };
-
-  // Simulate advancing the status of a tracked booking for demo purposes
-  const advanceTrackedStatus = () => {
-    if (!trackedBooking) return;
-    const currentIdx = trackedBooking.statusIndex;
-    const nextIdx = (currentIdx + 1) % STATUS_STEPS.length;
-    
-    // Update bookings state
-    const updatedBookings = bookings.map(b => {
-      if (b.code === trackedBooking.code) {
-        return { ...b, statusIndex: nextIdx };
-      }
-      return b;
-    });
-    setBookings(updatedBookings);
-
-    // Update locally tracked item
-    setTrackedBooking(prev => ({ ...prev, statusIndex: nextIdx }));
   };
 
   // Handle Tracking Search
@@ -237,7 +282,7 @@ function App() {
   };
 
   // Filter products
-  const filteredProducts = INITIAL_SPARES.filter(part => {
+  const filteredProducts = spares.filter(part => {
     const matchesSearch = part.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           part.desc.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = categoryFilter === 'All' || part.category === categoryFilter;
@@ -253,6 +298,72 @@ function App() {
       top: 0,
       behavior: 'smooth'
     });
+  };
+
+  // Admin login handler
+  const handleAdminLogin = (e) => {
+    e.preventDefault();
+    if (adminCredentials.email === 'admin@sparkcraft.com' && adminCredentials.password === 'admin123') {
+      setIsAdminLoggedIn(true);
+      setAdminLoginError('');
+      switchScreen('admin-dashboard');
+    } else {
+      setAdminLoginError('Invalid admin email or password. Hint: admin@sparkcraft.com / admin123');
+    }
+  };
+
+  // Add Part handler
+  const handleAddPart = (e) => {
+    e.preventDefault();
+    const newPart = {
+      id: Date.now(),
+      name: newPartData.name,
+      category: newPartData.category,
+      price: parseFloat(newPartData.price),
+      stock: parseInt(newPartData.stock),
+      rating: 5.0,
+      desc: newPartData.desc
+    };
+    setSpares(prev => [...prev, newPart]);
+    setNewPartData({ name: '', category: 'Engine', price: '', stock: '', desc: '' });
+    alert('New Spare Part successfully added to inventory catalog!');
+  };
+
+  // Update spares values directly
+  const handleUpdateStock = (id, newStock) => {
+    setSpares(prev => prev.map(item => item.id === id ? { ...item, stock: Math.max(0, parseInt(newStock)) } : item));
+  };
+
+  const handleUpdatePrice = (id, newPrice) => {
+    setSpares(prev => prev.map(item => item.id === id ? { ...item, price: Math.max(0, parseFloat(newPrice)) } : item));
+  };
+
+  // Delete spare part
+  const handleDeletePart = (id) => {
+    if (confirm('Are you sure you want to delete this part from inventory?')) {
+      setSpares(prev => prev.filter(item => item.id !== id));
+    }
+  };
+
+  // Update Booking Status index
+  const handleUpdateStatus = (code, index) => {
+    const updated = bookings.map(b => b.code === code ? { ...b, statusIndex: parseInt(index) } : b);
+    setBookings(updated);
+    if (trackedBooking && trackedBooking.code === code) {
+      setTrackedBooking(prev => ({ ...prev, statusIndex: parseInt(index) }));
+    }
+  };
+
+  // Delete Booking
+  const handleDeleteBooking = (code) => {
+    if (confirm(`Cancel and delete booking ${code}?`)) {
+      setBookings(prev => prev.filter(b => b.code !== code));
+    }
+  };
+
+  // Resolve Enquiry
+  const handleResolveEnquiry = (id) => {
+    setEnquiries(prev => prev.map(e => e.id === id ? { ...e, resolved: !e.resolved } : e));
   };
 
   return (
@@ -276,7 +387,7 @@ function App() {
             >
               Store
             </button>
-            {SHOW_GARAGE_SERVICES && (
+            {showGarage && (
               <button 
                 onClick={() => switchScreen('services')} 
                 style={activeTab === 'services' ? { ...styles.navLink, ...styles.navLinkActive } : styles.navLink}
@@ -290,7 +401,7 @@ function App() {
             >
               Spare Parts
             </button>
-            {SHOW_GARAGE_SERVICES && (
+            {showGarage && (
               <button 
                 onClick={() => switchScreen('tracking')} 
                 style={activeTab === 'tracking' ? { ...styles.navLink, ...styles.navLinkActive } : styles.navLink}
@@ -304,6 +415,22 @@ function App() {
             >
               Contact Us
             </button>
+            
+            {isAdminLoggedIn ? (
+              <button 
+                onClick={() => switchScreen('admin-dashboard')} 
+                style={activeTab === 'admin-dashboard' ? { ...styles.navLink, ...styles.navLinkActive } : styles.navLink}
+              >
+                Admin Panel
+              </button>
+            ) : (
+              <button 
+                onClick={() => switchScreen('admin-login')} 
+                style={activeTab === 'admin-login' ? { ...styles.navLink, ...styles.navLinkActive } : styles.navLink}
+              >
+                Admin Login
+              </button>
+            )}
           </div>
 
           <div style={styles.navActions}>
@@ -314,10 +441,20 @@ function App() {
               <ShoppingBag size={20} />
               {cart.length > 0 && <span style={styles.cartCount}>{cart.reduce((a, c) => a + c.qty, 0)}</span>}
             </button>
-            {SHOW_GARAGE_SERVICES && (
+            {showGarage && (
               <button onClick={() => switchScreen('book')} style={styles.navCTA}>
                 <Calendar size={16} />
                 Book Slot
+              </button>
+            )}
+            {isAdminLoggedIn && (
+              <button 
+                onClick={() => { setIsAdminLoggedIn(false); switchScreen('home'); }} 
+                className="btn-secondary" 
+                style={{ padding: '0.5rem 0.8rem', display: 'flex', gap: '0.25rem', height: '40px', alignItems: 'center' }}
+              >
+                <LogOut size={16} />
+                Exit
               </button>
             )}
           </div>
@@ -335,10 +472,10 @@ function App() {
               <div style={styles.heroContent}>
                 <div style={styles.badgeRow}>
                   <Sparkles size={16} color="var(--primary)" />
-                  <span>{SHOW_GARAGE_SERVICES ? 'PREMIUM MOTORCYCLE CARE & SPARE PARTS' : '100% GENUINE MOTORCYCLE SPARE PARTS'}</span>
+                  <span>{showGarage ? 'PREMIUM MOTORCYCLE CARE & SPARE PARTS' : '100% GENUINE MOTORCYCLE SPARE PARTS'}</span>
                 </div>
                 <h1 style={styles.heroTitle}>
-                  {SHOW_GARAGE_SERVICES ? (
+                  {showGarage ? (
                     <>
                       KEEP YOUR MACHINE <br />
                       <span style={{ color: 'var(--primary)' }}>AT PEAK PERFORMANCE</span>
@@ -351,12 +488,12 @@ function App() {
                   )}
                 </h1>
                 <p style={styles.heroDescription}>
-                  {SHOW_GARAGE_SERVICES 
+                  {showGarage 
                     ? 'Spark Craft is your absolute destination for high-end track tuning, daily general maintenance, and 100% genuine motorcycle spares. Book your expert slot in seconds.'
                     : 'Spark Craft is your destination for premium quality, factory-approved motorcycle spares and accessories. Keep your ride authentic and running at maximum potential.'}
                 </p>
                 <div style={styles.heroButtonRow}>
-                  {SHOW_GARAGE_SERVICES ? (
+                  {showGarage ? (
                     <button onClick={() => switchScreen('book')} className="btn-primary">
                       <Calendar size={18} />
                       Book Service Now
@@ -367,8 +504,8 @@ function App() {
                       Explore Spares Catalog
                     </button>
                   )}
-                  <button onClick={SHOW_GARAGE_SERVICES ? () => switchScreen('catalog') : () => setIsCartOpen(true)} className="btn-secondary">
-                    {SHOW_GARAGE_SERVICES ? 'Browse Genuine Spares' : 'View Shopping Cart'}
+                  <button onClick={showGarage ? () => switchScreen('catalog') : () => setIsCartOpen(true)} className="btn-secondary">
+                    {showGarage ? 'Browse Genuine Spares' : 'View Shopping Cart'}
                     <ArrowRight size={18} />
                   </button>
                 </div>
@@ -386,8 +523,8 @@ function App() {
             <div style={styles.metricGrid}>
               <div className="glass-panel" style={styles.metricCard}>
                 <TrendingUp size={24} color="var(--primary)" />
-                <h3 style={styles.metricVal}>{SHOW_GARAGE_SERVICES ? '1,200+' : '4,500+'}</h3>
-                <p style={styles.metricLabel}>{SHOW_GARAGE_SERVICES ? 'Machines Tuned' : 'Orders Shipped'}</p>
+                <h3 style={styles.metricVal}>{showGarage ? '1,200+' : '4,500+'}</h3>
+                <p style={styles.metricLabel}>{showGarage ? 'Machines Tuned' : 'Orders Shipped'}</p>
               </div>
               <div className="glass-panel" style={styles.metricCard}>
                 <ShieldCheck size={24} color="var(--success)" />
@@ -396,13 +533,13 @@ function App() {
               </div>
               <div className="glass-panel" style={styles.metricCard}>
                 <Clock size={24} color="var(--info)" />
-                <h3 style={styles.metricVal}>{SHOW_GARAGE_SERVICES ? 'Same-Day' : 'Fast-Track'}</h3>
-                <p style={styles.metricLabel}>{SHOW_GARAGE_SERVICES ? 'Express Fluids & Inspection' : 'Delivery & Secure Dispatch'}</p>
+                <h3 style={styles.metricVal}>{showGarage ? 'Same-Day' : 'Fast-Track'}</h3>
+                <p style={styles.metricLabel}>{showGarage ? 'Express Fluids & Inspection' : 'Delivery & Secure Dispatch'}</p>
               </div>
             </div>
 
             {/* Fast tracking shortcut (Only shown if Garage is Active) */}
-            {SHOW_GARAGE_SERVICES && (
+            {showGarage && (
               <div className="glass-panel" style={styles.quickTrackPanel}>
                 <div>
                   <h3 style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>Track Current Service Status</h3>
@@ -425,8 +562,8 @@ function App() {
           </section>
         )}
 
-        {/* SCREEN 2: Services (Only shown if Garage is Active) */}
-        {SHOW_GARAGE_SERVICES && activeTab === 'services' && (
+        {/* SCREEN 2: Services */}
+        {showGarage && activeTab === 'services' && (
           <section className="animate-fade-in-up" style={styles.sectionSpacing}>
             <div style={styles.sectionHeader}>
               <span style={styles.sectionSubtitle}>CLINIC SERVICES</span>
@@ -551,7 +688,7 @@ function App() {
             )}
 
             {/* Moto Clinic / Garage Services teaser banner (Only shown if Garage is INACTIVE) */}
-            {!SHOW_GARAGE_SERVICES && (
+            {!showGarage && (
               <div className="glass-panel animate-fade-in-up" style={styles.teaserBanner}>
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
                   <div style={{ ...styles.logoIcon, width: '48px', height: '48px' }}>
@@ -568,8 +705,8 @@ function App() {
           </section>
         )}
 
-        {/* SCREEN 4: Live Status Tracker (Only shown if Garage is Active) */}
-        {SHOW_GARAGE_SERVICES && activeTab === 'tracking' && (
+        {/* SCREEN 4: Live Status Tracker */}
+        {showGarage && activeTab === 'tracking' && (
           <section className="animate-fade-in-up" style={styles.sectionSpacing}>
             <div style={styles.sectionHeader}>
               <span style={styles.sectionSubtitle}>TRACKER</span>
@@ -666,8 +803,8 @@ function App() {
           </section>
         )}
 
-        {/* SECTION 5: Book Service Slot (Only shown if Garage is Active) */}
-        {SHOW_GARAGE_SERVICES && activeTab === 'book' && (
+        {/* SECTION 5: Book Service Slot */}
+        {showGarage && activeTab === 'book' && (
           <section className="animate-fade-in-up" style={{ ...styles.sectionSpacing, maxWidth: '720px', margin: '0 auto' }}>
             <div style={styles.sectionHeader}>
               <span style={styles.sectionSubtitle}>RESERVATION</span>
@@ -908,6 +1045,341 @@ function App() {
                   </form>
                 )}
               </div>
+            </div>
+          </section>
+        )}
+
+        {/* SCREEN 7: Admin Login */}
+        {activeTab === 'admin-login' && (
+          <section className="animate-fade-in-up" style={{ maxWidth: '440px', margin: '2rem auto 4rem' }}>
+            <div style={styles.sectionHeader}>
+              <span style={styles.sectionSubtitle}>PORTAL</span>
+              <h2 style={{ fontSize: '1.75rem', marginTop: '0.25rem' }}>ADMIN LOGIN</h2>
+            </div>
+
+            <div className="glass-panel" style={{ padding: '2.5rem 2rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
+                <div style={{ ...styles.contactIconCircle, width: '48px', height: '48px' }}>
+                  <Lock size={22} color="var(--primary)" />
+                </div>
+              </div>
+
+              {adminLoginError && (
+                <div style={styles.errorAlert}>
+                  <AlertCircle size={16} />
+                  <span>{adminLoginError}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleAdminLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', textAlign: 'left' }}>
+                  <label style={styles.formLabel}>Admin Email</label>
+                  <input 
+                    type="email" 
+                    required 
+                    placeholder="admin@sparkcraft.com"
+                    value={adminCredentials.email}
+                    onChange={(e) => setAdminCredentials({...adminCredentials, email: e.target.value})}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', textAlign: 'left' }}>
+                  <label style={styles.formLabel}>Password</label>
+                  <input 
+                    type="password" 
+                    required 
+                    placeholder="••••••••"
+                    value={adminCredentials.password}
+                    onChange={(e) => setAdminCredentials({...adminCredentials, password: e.target.value})}
+                  />
+                </div>
+
+                <button type="submit" className="btn-primary" style={{ justifyContent: 'center', marginTop: '0.5rem' }}>
+                  <Unlock size={16} />
+                  Authenticate
+                </button>
+              </form>
+
+              <div style={{ marginTop: '1.5rem', fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+                <strong>Demo Access:</strong><br />
+                Email: <code>admin@sparkcraft.com</code><br />
+                Password: <code>admin123</code>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* SCREEN 8: Admin Dashboard Panel */}
+        {isAdminLoggedIn && activeTab === 'admin-dashboard' && (
+          <section className="animate-fade-in-up">
+            <div style={styles.adminDashboardHeader}>
+              <div>
+                <span style={styles.sectionSubtitle}>CONTROL BOARD</span>
+                <h2 style={{ fontSize: '2rem', textAlign: 'left' }}>SPARK CRAFT OPERATIONS</h2>
+              </div>
+              
+              {/* Garage toggle controller */}
+              <div className="glass-panel" style={styles.adminTogglePanel}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Wrench size={18} color={showGarage ? 'var(--success)' : 'var(--text-muted)'} />
+                  <div>
+                    <p style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Garage Services Clinic</p>
+                    <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Status: {showGarage ? 'LIVE ON STORE' : 'HIDDEN / COMING SOON'}</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setShowGarage(!showGarage)}
+                  className="btn-primary" 
+                  style={{ 
+                    padding: '0.4rem 0.8rem', 
+                    fontSize: '0.8rem',
+                    background: showGarage ? 'var(--success)' : 'var(--primary)'
+                  }}
+                >
+                  {showGarage ? 'Deactivate Garage' : 'Activate Garage Live'}
+                </button>
+              </div>
+            </div>
+
+            {/* Dashboard metrics grid */}
+            <div style={styles.adminMetricsGrid}>
+              <div className="glass-panel" style={styles.adminMetricCard}>
+                <DollarSign size={20} color="var(--primary)" />
+                <div>
+                  <span style={styles.adminMetricLabel}>SIMULATED SALES</span>
+                  <h4 style={styles.adminMetricVal}>$14,849.20</h4>
+                </div>
+              </div>
+
+              <div className="glass-panel" style={styles.adminMetricCard}>
+                <Package size={20} color="var(--info)" />
+                <div>
+                  <span style={styles.adminMetricLabel}>INVENTORY PARTS</span>
+                  <h4 style={styles.adminMetricVal}>{spares.length} Items</h4>
+                </div>
+              </div>
+
+              <div className="glass-panel" style={styles.adminMetricCard}>
+                <Inbox size={20} color="var(--warning)" />
+                <div>
+                  <span style={styles.adminMetricLabel}>CONTACT INQUIRIES</span>
+                  <h4 style={styles.adminMetricVal}>{enquiries.filter(e => !e.resolved).length} Pending</h4>
+                </div>
+              </div>
+
+              <div className="glass-panel" style={styles.adminMetricCard}>
+                <Layers size={20} color="var(--success)" />
+                <div>
+                  <span style={styles.adminMetricLabel}>ACTIVE BOOKINGS</span>
+                  <h4 style={styles.adminMetricVal}>{bookings.length} Reservation Slots</h4>
+                </div>
+              </div>
+            </div>
+
+            {/* Main Admin Section Grid */}
+            <div style={styles.adminSectionLayout}>
+              
+              {/* Left Column: Inventory list & Add Spares form */}
+              <div style={{ flex: 1.5, display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                <div className="glass-panel" style={{ padding: '2rem' }}>
+                  <h3 style={{ fontSize: '1.25rem', marginBottom: '1.25rem', textAlign: 'left' }}>Store Catalog Inventory</h3>
+                  
+                  <div style={styles.adminTableContainer}>
+                    <table style={styles.adminTable}>
+                      <thead>
+                        <tr>
+                          <th style={styles.th}>Name</th>
+                          <th style={styles.th}>Category</th>
+                          <th style={styles.th}>Price ($)</th>
+                          <th style={styles.th}>Stock</th>
+                          <th style={styles.th}>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {spares.map(part => (
+                          <tr key={part.id} style={styles.tr}>
+                            <td style={{ ...styles.td, fontWeight: 'bold' }}>{part.name}</td>
+                            <td style={styles.td}>{part.category}</td>
+                            <td style={styles.td}>
+                              <input 
+                                type="number" 
+                                step="0.01"
+                                value={part.price}
+                                onChange={(e) => handleUpdatePrice(part.id, e.target.value)}
+                                style={styles.adminTableInput}
+                              />
+                            </td>
+                            <td style={styles.td}>
+                              <input 
+                                type="number" 
+                                value={part.stock}
+                                onChange={(e) => handleUpdateStock(part.id, e.target.value)}
+                                style={styles.adminTableInput}
+                              />
+                            </td>
+                            <td style={styles.td}>
+                              <button onClick={() => handleDeletePart(part.id)} style={styles.deleteBtn}>
+                                <Trash2 size={16} />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div className="glass-panel" style={{ padding: '2rem' }}>
+                  <h3 style={{ fontSize: '1.25rem', marginBottom: '1.25rem', textAlign: 'left' }}>Add New Spare Part</h3>
+                  <form onSubmit={handleAddPart} style={styles.adminAddForm}>
+                    <div style={styles.formRow}>
+                      <div style={styles.formGroup}>
+                        <label style={styles.formLabel}>Part Name</label>
+                        <input 
+                          type="text" 
+                          required 
+                          placeholder="e.g. Ohlins Rear Shock"
+                          value={newPartData.name}
+                          onChange={(e) => setNewPartData({...newPartData, name: e.target.value})}
+                        />
+                      </div>
+                      <div style={styles.formGroup}>
+                        <label style={styles.formLabel}>Category</label>
+                        <select 
+                          value={newPartData.category}
+                          onChange={(e) => setNewPartData({...newPartData, category: e.target.value})}
+                        >
+                          {categories.filter(c => c !== 'All').map(cat => (
+                            <option key={cat}>{cat}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div style={styles.formRow}>
+                      <div style={styles.formGroup}>
+                        <label style={styles.formLabel}>Price ($)</label>
+                        <input 
+                          type="number" 
+                          step="0.01" 
+                          required 
+                          placeholder="e.g. 299.99"
+                          value={newPartData.price}
+                          onChange={(e) => setNewPartData({...newPartData, price: e.target.value})}
+                        />
+                      </div>
+                      <div style={styles.formGroup}>
+                        <label style={styles.formLabel}>Stock Count</label>
+                        <input 
+                          type="number" 
+                          required 
+                          placeholder="e.g. 5"
+                          value={newPartData.stock}
+                          onChange={(e) => setNewPartData({...newPartData, stock: e.target.value})}
+                        />
+                      </div>
+                    </div>
+
+                    <div style={styles.formGroup}>
+                      <label style={styles.formLabel}>Description</label>
+                      <textarea 
+                        required 
+                        rows="2" 
+                        placeholder="Description of the spare part and compatibility..."
+                        value={newPartData.desc}
+                        onChange={(e) => setNewPartData({...newPartData, desc: e.target.value})}
+                      />
+                    </div>
+
+                    <button type="submit" className="btn-primary" style={{ justifyContent: 'center' }}>
+                      <Plus size={16} />
+                      Add Part to Live Catalog
+                    </button>
+                  </form>
+                </div>
+              </div>
+
+              {/* Right Column: Bookings list & Enquiries */}
+              <div style={{ flex: 1.2, display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                {/* Bookings panel */}
+                <div className="glass-panel" style={{ padding: '2rem' }}>
+                  <h3 style={{ fontSize: '1.25rem', marginBottom: '1.25rem', textAlign: 'left' }}>Bike Service Reservations</h3>
+                  {bookings.length === 0 ? (
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'left' }}>No bookings reserved.</p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      {bookings.map(b => (
+                        <div key={b.code} style={styles.adminBookingCard}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div>
+                              <span style={{ fontSize: '0.8rem', color: 'var(--primary)', fontWeight: 'bold' }}>{b.code}</span>
+                              <h4 style={{ fontSize: '0.95rem', fontWeight: 'bold' }}>{b.bikeModel}</h4>
+                              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Owner: {b.name} ({b.phone})</p>
+                            </div>
+                            <button onClick={() => handleDeleteBooking(b.code)} style={styles.deleteBtn}>
+                              <X size={16} />
+                            </button>
+                          </div>
+
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginTop: '0.5rem', background: 'rgba(17,24,39,0.02)', padding: '0.5rem', borderRadius: '4px' }}>
+                            <p style={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Update Live Status:</p>
+                            <select 
+                              value={b.statusIndex}
+                              onChange={(e) => handleUpdateStatus(b.code, e.target.value)}
+                              style={{ padding: '0.25rem', fontSize: '0.8rem', background: '#fff' }}
+                            >
+                              {STATUS_STEPS.map((step, idx) => (
+                                <option key={step.key} value={idx}>{step.label}</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Customer messages panel */}
+                <div className="glass-panel" style={{ padding: '2rem' }}>
+                  <h3 style={{ fontSize: '1.25rem', marginBottom: '1.25rem', textAlign: 'left' }}>Customer Inbox</h3>
+                  {enquiries.length === 0 ? (
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'left' }}>No emails or enquiries in inbox.</p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      {enquiries.map(enq => (
+                        <div key={enq.id} style={{
+                          ...styles.adminEnquiryCard,
+                          borderLeftColor: enq.resolved ? 'var(--success)' : 'var(--warning)'
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--text-muted)' }}>{enq.subject}</span>
+                            <button 
+                              onClick={() => handleResolveEnquiry(enq.id)} 
+                              style={{
+                                background: 'none', 
+                                border: 'none', 
+                                color: enq.resolved ? 'var(--success)' : 'var(--text-muted)', 
+                                cursor: 'pointer',
+                                fontSize: '0.75rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.25rem'
+                              }}
+                            >
+                              <Check size={14} />
+                              {enq.resolved ? 'Resolved' : 'Mark Resolved'}
+                            </button>
+                          </div>
+                          <h4 style={{ fontSize: '0.9rem', fontWeight: 'bold', marginTop: '0.25rem' }}>{enq.name}</h4>
+                          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{enq.email}</p>
+                          <p style={{ fontSize: '0.8rem', color: 'var(--text-main)', marginTop: '0.5rem', background: '#fff', padding: '0.5rem', borderRadius: '4px' }}>"{enq.message}"</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
             </div>
           </section>
         )}
@@ -1689,6 +2161,121 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center'
+  },
+  errorAlert: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    background: 'rgba(239, 68, 68, 0.05)',
+    border: '1px solid rgba(239, 68, 68, 0.2)',
+    color: '#EF4444',
+    padding: '0.75rem',
+    borderRadius: '8px',
+    fontSize: '0.85rem',
+    textAlign: 'left',
+    marginBottom: '1rem'
+  },
+  adminDashboardHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '2rem',
+    borderBottom: '1px solid var(--border)',
+    paddingBottom: '1.5rem'
+  },
+  adminTogglePanel: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1.5rem',
+    padding: '0.75rem 1.25rem',
+    borderRadius: '12px'
+  },
+  adminMetricsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(4, 1fr)',
+    gap: '1.5rem',
+    marginBottom: '2.5rem',
+    textAlign: 'left'
+  },
+  adminMetricCard: {
+    padding: '1.5rem',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1rem'
+  },
+  adminMetricLabel: {
+    fontSize: '0.7rem',
+    color: 'var(--text-muted)',
+    fontWeight: 'bold',
+    letterSpacing: '0.05em'
+  },
+  adminMetricVal: {
+    fontSize: '1.35rem',
+    fontWeight: 'bold',
+    color: '#111827',
+    marginTop: '0.15rem'
+  },
+  adminSectionLayout: {
+    display: 'flex',
+    gap: '2.5rem'
+  },
+  adminTableContainer: {
+    overflowX: 'auto',
+    marginTop: '0.5rem'
+  },
+  adminTable: {
+    width: '100%',
+    borderCollapse: 'collapse',
+    textAlign: 'left',
+    fontSize: '0.85rem'
+  },
+  th: {
+    borderBottom: '2px solid var(--border)',
+    padding: '0.75rem 0.5rem',
+    color: 'var(--text-muted)',
+    fontWeight: '600'
+  },
+  tr: {
+    borderBottom: '1px solid var(--border)'
+  },
+  td: {
+    padding: '0.75rem 0.5rem',
+    color: 'var(--text-main)'
+  },
+  adminTableInput: {
+    width: '70px',
+    padding: '0.35rem',
+    fontSize: '0.8rem',
+    background: '#fff'
+  },
+  deleteBtn: {
+    background: 'none',
+    border: 'none',
+    color: '#EF4444',
+    cursor: 'pointer',
+    padding: '0.25rem',
+    transition: 'color 0.2s'
+  },
+  adminAddForm: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1.25rem',
+    textAlign: 'left'
+  },
+  adminBookingCard: {
+    background: 'rgba(17,24,39,0.01)',
+    border: '1px solid var(--border)',
+    borderRadius: '8px',
+    padding: '1rem',
+    textAlign: 'left'
+  },
+  adminEnquiryCard: {
+    background: 'rgba(17,24,39,0.01)',
+    border: '1px solid var(--border)',
+    borderLeftWidth: '4px',
+    borderRadius: '8px',
+    padding: '1rem',
+    textAlign: 'left'
   },
   footer: {
     borderTop: '1px solid var(--border)',
