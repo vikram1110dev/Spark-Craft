@@ -2,7 +2,6 @@ import React, { StrictMode, useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { 
   Wrench, 
-  Settings, 
   Calendar, 
   Plus, 
   Trash2, 
@@ -19,16 +18,24 @@ import {
 } from 'lucide-react';
 import './index.css';
 
+// BIKE DATA DEFINITION
+const BIKE_BRANDS = {
+  'Yamaha': ['Yamaha YZF-R15', 'Yamaha MT-15', 'Yamaha FZ-S'],
+  'KTM': ['KTM RC 390', 'KTM Duke 250', 'KTM Adventure 390'],
+  'Royal Enfield': ['RE Classic 350', 'RE Himalayan 450', 'RE Continental GT 650'],
+  'Honda': ['Honda CB350 H\'ness', 'Honda CBR650R', 'Honda Hornet 2.0']
+};
+
 // Initial Mock spare parts catalog data
 const INITIAL_SPARES = [
-  { id: 1, name: 'Brembo Sintered Brake Pads', category: 'Brakes', price: 89.99, stock: 12, rating: 4.9, desc: 'High friction coefficient pads for maximum stopping power.' },
-  { id: 2, name: 'NGK Iridium IX Spark Plug (Pack of 4)', category: 'Engine', price: 45.50, stock: 8, rating: 4.8, desc: 'Designed specifically for high-performance motorcycle engines.' },
-  { id: 3, name: 'K&N High-Flow Air Filter', category: 'Filters', price: 65.00, stock: 15, rating: 4.7, desc: 'Washable and reusable filter for increased horsepower.' },
-  { id: 4, name: 'CNC Adjustable Clutch & Brake Levers', category: 'Controls', price: 110.00, stock: 6, rating: 4.9, desc: '6-position adjustable aluminum levers, black anodized.' },
-  { id: 5, name: 'Motul 300V Synthetic Oil (4 Liters)', category: 'Fluids', price: 79.99, stock: 20, rating: 5.0, desc: 'Double Ester technology for racing & high-revving engines.' },
-  { id: 6, name: 'LED Sequential Turn Signals (Set of 2)', category: 'Electrical', price: 34.99, stock: 24, rating: 4.6, desc: 'Sequential flowing glow pattern with high brightness LEDs.' },
-  { id: 7, name: 'DID 525 VX3 Gold X-Ring Chain', category: 'Drivetrain', price: 135.00, stock: 4, rating: 4.9, desc: 'Top-tier durability and reduced friction chain.' },
-  { id: 8, name: 'Yuasa Heavy Duty AGM Battery', category: 'Electrical', price: 95.00, stock: 10, rating: 4.7, desc: 'Maintenance-free high cranking amp battery.' }
+  { id: 1, name: 'Brembo Sintered Brake Pads', category: 'Brakes', price: 89.99, stock: 12, rating: 4.9, desc: 'High friction coefficient pads for maximum stopping power.', compatibility: ['Yamaha YZF-R15', 'Yamaha MT-15', 'KTM RC 390', 'KTM Duke 250', 'Honda CBR650R'] },
+  { id: 2, name: 'NGK Iridium IX Spark Plug (Pack of 4)', category: 'Engine', price: 45.50, stock: 8, rating: 4.8, desc: 'Designed specifically for high-performance motorcycle engines.', compatibility: ['Yamaha YZF-R15', 'Yamaha MT-15', 'KTM RC 390', 'KTM Duke 250', 'RE Classic 350', 'RE Himalayan 450', 'RE Continental GT 650'] },
+  { id: 3, name: 'K&N High-Flow Air Filter', category: 'Filters', price: 65.00, stock: 15, rating: 4.7, desc: 'Washable and reusable filter for increased horsepower.', compatibility: ['KTM RC 390', 'KTM Adventure 390', 'RE Himalayan 450'] },
+  { id: 4, name: 'CNC Adjustable Clutch & Brake Levers', category: 'Controls', price: 110.00, stock: 6, rating: 4.9, desc: '6-position adjustable aluminum levers, black anodized.', compatibility: ['Yamaha YZF-R15', 'Yamaha MT-15', 'KTM Duke 250', 'KTM RC 390'] },
+  { id: 5, name: 'Motul 300V Synthetic Oil (4 Liters)', category: 'Fluids', price: 79.99, stock: 20, rating: 5.0, desc: 'Double Ester technology for racing & high-revving engines.', compatibility: ['Yamaha YZF-R15', 'Yamaha MT-15', 'KTM RC 390', 'KTM Duke 250', 'RE Classic 350', 'RE Himalayan 450', 'RE Continental GT 650', 'Honda CB350 H\'ness', 'Honda CBR650R', 'Honda Hornet 2.0', 'KTM Adventure 390'] },
+  { id: 6, name: 'LED Sequential Turn Signals (Set of 2)', category: 'Electrical', price: 34.99, stock: 24, rating: 4.6, desc: 'Sequential flowing glow pattern with high brightness LEDs.', compatibility: ['Yamaha YZF-R15', 'Yamaha MT-15', 'KTM RC 390', 'KTM Duke 250', 'RE Classic 350', 'RE Himalayan 450', 'RE Continental GT 650', 'Honda CB350 H\'ness', 'Honda CBR650R', 'Honda Hornet 2.0', 'KTM Adventure 390'] },
+  { id: 7, name: 'DID 525 VX3 Gold X-Ring Chain', category: 'Drivetrain', price: 135.00, stock: 4, rating: 4.9, desc: 'Top-tier durability and reduced friction chain.', compatibility: ['RE Continental GT 650', 'Honda CBR650R'] },
+  { id: 8, name: 'Yuasa Heavy Duty AGM Battery', category: 'Electrical', price: 95.00, stock: 10, rating: 4.7, desc: 'Maintenance-free high cranking amp battery.', compatibility: ['RE Classic 350', 'RE Himalayan 450', 'Honda CB350 H\'ness'] }
 ];
 
 // Service status categories
@@ -135,6 +142,7 @@ function AdminPortal() {
     stock: '',
     desc: ''
   });
+  const [compatCheckboxes, setCompatCheckboxes] = useState([]);
 
   // Admin login handler
   const handleAdminLogin = (e) => {
@@ -157,12 +165,23 @@ function AdminPortal() {
       price: parseFloat(newPartData.price),
       stock: parseInt(newPartData.stock),
       rating: 5.0,
-      desc: newPartData.desc
+      desc: newPartData.desc,
+      compatibility: compatCheckboxes
     };
     const updated = [...spares, newPart];
     setSpares(updated);
     setNewPartData({ name: '', category: 'Engine', price: '', stock: '', desc: '' });
+    setCompatCheckboxes([]);
     alert('New Spare Part successfully added to inventory catalog!');
+  };
+
+  // Toggle compatibility checkbox
+  const handleToggleCompat = (bike) => {
+    if (compatCheckboxes.includes(bike)) {
+      setCompatCheckboxes(prev => prev.filter(b => b !== bike));
+    } else {
+      setCompatCheckboxes(prev => [...prev, bike]);
+    }
   };
 
   // Update spares values directly
@@ -447,6 +466,30 @@ function AdminPortal() {
                           value={newPartData.stock}
                           onChange={(e) => setNewPartData({...newPartData, stock: e.target.value})}
                         />
+                      </div>
+                    </div>
+
+                    {/* Bike Compatibility checklist */}
+                    <div style={styles.formGroup}>
+                      <label style={styles.formLabel}>Bike Compatibility</label>
+                      <div style={styles.checkboxGrid}>
+                        {Object.entries(BIKE_BRANDS).map(([brand, bikes]) => (
+                          <div key={brand} style={{ marginBottom: '0.75rem' }}>
+                            <p style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--primary)', marginBottom: '0.25rem' }}>{brand}</p>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                              {bikes.map(bike => (
+                                <label key={bike} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', cursor: 'pointer' }}>
+                                  <input 
+                                    type="checkbox"
+                                    checked={compatCheckboxes.includes(bike)}
+                                    onChange={() => handleToggleCompat(bike)}
+                                  />
+                                  <span>{bike}</span>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
 
@@ -757,6 +800,15 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: '0.5rem'
+  },
+  checkboxGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, 1fr)',
+    gap: '1rem',
+    background: 'rgba(255,255,255,0.03)',
+    border: '1px solid var(--border)',
+    padding: '1rem',
+    borderRadius: '8px'
   },
   adminBookingCard: {
     background: 'rgba(17,24,39,0.01)',

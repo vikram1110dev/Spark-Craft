@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Wrench, 
-  Settings, 
   ShoppingBag, 
   Calendar, 
   Search, 
@@ -19,21 +18,31 @@ import {
   ArrowRight,
   AlertCircle,
   Mail,
-  Send
+  Send,
+  Sliders,
+  ChevronRight
 } from 'lucide-react';
 import './App.css';
 import heroImg from './assets/hero.png';
 
+// BIKE DATA DEFINITION
+const BIKE_BRANDS = {
+  'Yamaha': ['Yamaha YZF-R15', 'Yamaha MT-15', 'Yamaha FZ-S'],
+  'KTM': ['KTM RC 390', 'KTM Duke 250', 'KTM Adventure 390'],
+  'Royal Enfield': ['RE Classic 350', 'RE Himalayan 450', 'RE Continental GT 650'],
+  'Honda': ['Honda CB350 H\'ness', 'Honda CBR650R', 'Honda Hornet 2.0']
+};
+
 // Mock spare parts catalog data
 const INITIAL_SPARES = [
-  { id: 1, name: 'Brembo Sintered Brake Pads', category: 'Brakes', price: 89.99, stock: 12, rating: 4.9, desc: 'High friction coefficient pads for maximum stopping power.' },
-  { id: 2, name: 'NGK Iridium IX Spark Plug (Pack of 4)', category: 'Engine', price: 45.50, stock: 8, rating: 4.8, desc: 'Designed specifically for high-performance motorcycle engines.' },
-  { id: 3, name: 'K&N High-Flow Air Filter', category: 'Filters', price: 65.00, stock: 15, rating: 4.7, desc: 'Washable and reusable filter for increased horsepower.' },
-  { id: 4, name: 'CNC Adjustable Clutch & Brake Levers', category: 'Controls', price: 110.00, stock: 6, rating: 4.9, desc: '6-position adjustable aluminum levers, black anodized.' },
-  { id: 5, name: 'Motul 300V Synthetic Oil (4 Liters)', category: 'Fluids', price: 79.99, stock: 20, rating: 5.0, desc: 'Double Ester technology for racing & high-revving engines.' },
-  { id: 6, name: 'LED Sequential Turn Signals (Set of 2)', category: 'Electrical', price: 34.99, stock: 24, rating: 4.6, desc: 'Sequential flowing glow pattern with high brightness LEDs.' },
-  { id: 7, name: 'DID 525 VX3 Gold X-Ring Chain', category: 'Drivetrain', price: 135.00, stock: 4, rating: 4.9, desc: 'Top-tier durability and reduced friction chain.' },
-  { id: 8, name: 'Yuasa Heavy Duty AGM Battery', category: 'Electrical', price: 95.00, stock: 10, rating: 4.7, desc: 'Maintenance-free high cranking amp battery.' }
+  { id: 1, name: 'Brembo Sintered Brake Pads', category: 'Brakes', price: 89.99, stock: 12, rating: 4.9, desc: 'High friction coefficient pads for maximum stopping power.', compatibility: ['Yamaha YZF-R15', 'Yamaha MT-15', 'KTM RC 390', 'KTM Duke 250', 'Honda CBR650R'] },
+  { id: 2, name: 'NGK Iridium IX Spark Plug (Pack of 4)', category: 'Engine', price: 45.50, stock: 8, rating: 4.8, desc: 'Designed specifically for high-performance motorcycle engines.', compatibility: ['Yamaha YZF-R15', 'Yamaha MT-15', 'KTM RC 390', 'KTM Duke 250', 'RE Classic 350', 'RE Himalayan 450', 'RE Continental GT 650'] },
+  { id: 3, name: 'K&N High-Flow Air Filter', category: 'Filters', price: 65.00, stock: 15, rating: 4.7, desc: 'Washable and reusable filter for increased horsepower.', compatibility: ['KTM RC 390', 'KTM Adventure 390', 'RE Himalayan 450'] },
+  { id: 4, name: 'CNC Adjustable Clutch & Brake Levers', category: 'Controls', price: 110.00, stock: 6, rating: 4.9, desc: '6-position adjustable aluminum levers, black anodized.', compatibility: ['Yamaha YZF-R15', 'Yamaha MT-15', 'KTM Duke 250', 'KTM RC 390'] },
+  { id: 5, name: 'Motul 300V Synthetic Oil (4 Liters)', category: 'Fluids', price: 79.99, stock: 20, rating: 5.0, desc: 'Double Ester technology for racing & high-revving engines.', compatibility: ['Yamaha YZF-R15', 'Yamaha MT-15', 'KTM RC 390', 'KTM Duke 250', 'RE Classic 350', 'RE Himalayan 450', 'RE Continental GT 650', 'Honda CB350 H\'ness', 'Honda CBR650R', 'Honda Hornet 2.0', 'KTM Adventure 390'] },
+  { id: 6, name: 'LED Sequential Turn Signals (Set of 2)', category: 'Electrical', price: 34.99, stock: 24, rating: 4.6, desc: 'Sequential flowing glow pattern with high brightness LEDs.', compatibility: ['Yamaha YZF-R15', 'Yamaha MT-15', 'KTM RC 390', 'KTM Duke 250', 'RE Classic 350', 'RE Himalayan 450', 'RE Continental GT 650', 'Honda CB350 H\'ness', 'Honda CBR650R', 'Honda Hornet 2.0', 'KTM Adventure 390'] },
+  { id: 7, name: 'DID 525 VX3 Gold X-Ring Chain', category: 'Drivetrain', price: 135.00, stock: 4, rating: 4.9, desc: 'Top-tier durability and reduced friction chain.', compatibility: ['RE Continental GT 650', 'Honda CBR650R'] },
+  { id: 8, name: 'Yuasa Heavy Duty AGM Battery', category: 'Electrical', price: 95.00, stock: 10, rating: 4.7, desc: 'Maintenance-free high cranking amp battery.', compatibility: ['RE Classic 350', 'RE Himalayan 450', 'Honda CB350 H\'ness'] }
 ];
 
 // Service status categories
@@ -105,6 +114,10 @@ function App() {
     const saved = localStorage.getItem('spark_enquiries');
     return saved ? JSON.parse(saved) : INITIAL_ENQUIRIES;
   });
+
+  // Spare By Bike State Finder
+  const [selectedBrand, setSelectedBrand] = useState('');
+  const [selectedBike, setSelectedBike] = useState('');
 
   // Keep local states synchronized with changes made in other tabs (Admin panel)
   useEffect(() => {
@@ -303,12 +316,23 @@ function App() {
     setIsCartOpen(false);
   };
 
-  // Filter products
+  // Filter products based on search, category AND bike compatibility
   const filteredProducts = spares.filter(part => {
     const matchesSearch = part.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           part.desc.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = categoryFilter === 'All' || part.category === categoryFilter;
-    return matchesSearch && matchesCategory;
+    
+    // If a bike model is selected, check if it's compatible
+    let matchesBike = true;
+    if (selectedBike) {
+      matchesBike = part.compatibility && part.compatibility.includes(selectedBike);
+    } else if (selectedBrand) {
+      // If only brand is selected, check if compatible with ANY bike in that brand
+      const brandBikes = BIKE_BRANDS[selectedBrand] || [];
+      matchesBike = part.compatibility && part.compatibility.some(bike => brandBikes.includes(bike));
+    }
+    
+    return matchesSearch && matchesCategory && matchesBike;
   });
 
   const categories = ['All', 'Engine', 'Brakes', 'Filters', 'Controls', 'Fluids', 'Electrical', 'Drivetrain'];
@@ -556,6 +580,71 @@ function App() {
               <p style={styles.sectionDesc}>Search or filter our catalog of race-tested and manufacturer-approved components to keep your machine authentic.</p>
             </div>
 
+            {/* Find spares by Bike Model Finder (eauto.co.in design style) */}
+            <div className="glass-panel" style={styles.bikeFinderPanel}>
+              <div style={styles.bikeFinderHeader}>
+                <ShoppingBag size={20} color="var(--primary)" />
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>Find Spares by Bike Model</h3>
+              </div>
+              <div style={styles.bikeFinderControls}>
+                {/* Select Brand */}
+                <div style={styles.finderField}>
+                  <label style={styles.finderLabel}>1. Select Brand</label>
+                  <select 
+                    value={selectedBrand}
+                    onChange={(e) => {
+                      setSelectedBrand(e.target.value);
+                      setSelectedBike('');
+                    }}
+                    style={styles.finderSelect}
+                  >
+                    <option value="">-- All Brands --</option>
+                    {Object.keys(BIKE_BRANDS).map(brand => (
+                      <option key={brand} value={brand}>{brand}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Select Bike Model */}
+                <div style={styles.finderField}>
+                  <label style={styles.finderLabel}>2. Select Bike Model</label>
+                  <select 
+                    value={selectedBike}
+                    disabled={!selectedBrand}
+                    onChange={(e) => setSelectedBike(e.target.value)}
+                    style={styles.finderSelect}
+                  >
+                    <option value="">-- All Bikes --</option>
+                    {selectedBrand && BIKE_BRANDS[selectedBrand].map(bike => (
+                      <option key={bike} value={bike}>{bike}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Reset button */}
+                <button 
+                  onClick={() => {
+                    setSelectedBrand('');
+                    setSelectedBike('');
+                  }}
+                  className="btn-secondary"
+                  style={{ alignSelf: 'flex-end', height: '42px', display: 'flex', alignItems: 'center' }}
+                >
+                  Clear Selection
+                </button>
+              </div>
+              
+              {/* Selected Compatibility Feedback */}
+              {(selectedBrand || selectedBike) && (
+                <div style={styles.compatibilityFeedback}>
+                  <Check size={14} color="var(--success)" />
+                  <span style={{ fontSize: '0.85rem' }}>
+                    Showing spare parts compatible with {selectedBike ? <strong>{selectedBike}</strong> : <strong>all {selectedBrand} models</strong>}
+                  </span>
+                </div>
+              )}
+            </div>
+
             {/* Filter controls */}
             <div className="glass-panel" style={styles.filterControls}>
               <div style={styles.searchBox}>
@@ -586,8 +675,8 @@ function App() {
             {filteredProducts.length === 0 ? (
               <div className="glass-panel" style={styles.emptyCatalog}>
                 <AlertCircle size={48} color="var(--text-muted)" style={{ marginBottom: '1rem' }} />
-                <h3>No Spare Parts Found</h3>
-                <p style={{ color: 'var(--text-muted)' }}>Try adjusting your search queries or filter categories.</p>
+                <h3>No Compatible Spare Parts Found</h3>
+                <p style={{ color: 'var(--text-muted)' }}>Try adjusting your search queries or selecting a different bike model.</p>
               </div>
             ) : (
               <div style={styles.catalogGrid}>
@@ -597,6 +686,17 @@ function App() {
                     <div style={styles.productDetails}>
                       <h3 style={styles.productName}>{part.name}</h3>
                       <p style={styles.productDesc}>{part.desc}</p>
+                      
+                      {/* Compatibility model badges list */}
+                      {part.compatibility && (
+                        <div style={styles.compatibilityList}>
+                          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Fits: </span>
+                          {part.compatibility.map(b => (
+                            <span key={b} style={styles.compatBadge}>{b}</span>
+                          ))}
+                        </div>
+                      )}
+
                       <div style={styles.productFooter}>
                         <div>
                           <span style={styles.productPrice}>${part.price.toFixed(2)}</span>
@@ -1368,6 +1468,54 @@ const styles = {
     fontWeight: 600,
     fontSize: '0.95rem'
   },
+  bikeFinderPanel: {
+    padding: '2rem',
+    textAlign: 'left',
+    marginBottom: '2rem'
+  },
+  bikeFinderHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    marginBottom: '1.25rem',
+    borderBottom: '1px solid var(--border)',
+    paddingBottom: '0.75rem'
+  },
+  bikeFinderControls: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr auto',
+    gap: '1.5rem',
+    alignItems: 'center'
+  },
+  finderField: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.5rem'
+  },
+  finderLabel: {
+    fontSize: '0.85rem',
+    fontWeight: 'bold',
+    color: 'var(--text-muted)'
+  },
+  finderSelect: {
+    padding: '0.75rem',
+    borderRadius: '8px',
+    border: '1px solid rgba(17, 24, 39, 0.1)',
+    background: '#FFFFFF',
+    fontSize: '0.9rem',
+    width: '100%'
+  },
+  compatibilityFeedback: {
+    marginTop: '1.25rem',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    background: 'rgba(16, 185, 129, 0.05)',
+    border: '1px solid rgba(16, 185, 129, 0.2)',
+    padding: '0.75rem 1rem',
+    borderRadius: '8px',
+    color: 'var(--success-dark)'
+  },
   filterControls: {
     display: 'flex',
     flexDirection: 'column',
@@ -1466,6 +1614,21 @@ const styles = {
     fontSize: '0.8rem',
     lineHeight: 1.4,
     flex: 1
+  },
+  compatibilityList: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '0.25rem',
+    alignItems: 'center',
+    margin: '0.5rem 0'
+  },
+  compatBadge: {
+    fontSize: '0.65rem',
+    background: 'rgba(17,24,39,0.03)',
+    border: '1px solid rgba(17,24,39,0.08)',
+    padding: '0.1rem 0.35rem',
+    borderRadius: '4px',
+    color: 'var(--text-muted)'
   },
   productFooter: {
     display: 'flex',
