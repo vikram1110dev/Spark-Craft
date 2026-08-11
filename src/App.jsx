@@ -875,11 +875,11 @@ const styles = {
   logoBadge: {
     fontSize: '0.65rem',
     background: 'rgba(17, 24, 39, 0.04)',
-    color: 'var(--primary)',
+    color: 'var(--text-muted)',
     padding: '0.15rem 0.4rem',
     borderRadius: '4px',
     fontWeight: 'bold',
-    border: '1px solid rgba(249, 115, 22, 0.3)'
+    border: '1px solid rgba(17, 24, 39, 0.12)'
   },
   navLinks: {
     display: 'flex',
@@ -971,9 +971,9 @@ const styles = {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '0.5rem',
-    background: 'rgba(249, 115, 22, 0.1)',
-    border: '1px solid rgba(249, 115, 22, 0.25)',
-    color: 'var(--primary)',
+    background: 'rgba(17, 24, 39, 0.04)',
+    border: '1px solid rgba(17, 24, 39, 0.12)',
+    color: 'var(--text-muted)',
     padding: '0.35rem 0.75rem',
     borderRadius: '50px',
     fontSize: '0.75rem',
@@ -1085,11 +1085,11 @@ const styles = {
     width: '48px',
     height: '48px',
     borderRadius: '10px',
-    background: 'rgba(249, 115, 22, 0.08)',
+    background: 'rgba(17, 24, 39, 0.04)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    border: '1px solid rgba(249, 115, 22, 0.15)'
+    border: '1px solid rgba(17, 24, 39, 0.08)'
   },
   serviceCardTitle: {
     fontSize: '1.25rem',
@@ -1175,9 +1175,9 @@ const styles = {
     position: 'absolute',
     top: '0.75rem',
     left: '0.75rem',
-    background: 'rgba(249, 115, 22, 0.1)',
-    border: '1px solid rgba(249, 115, 22, 0.3)',
-    color: 'var(--primary)',
+    background: 'rgba(17, 24, 39, 0.05)',
+    border: '1px solid rgba(17, 24, 39, 0.12)',
+    color: 'var(--text-muted)',
     fontSize: '0.7rem',
     fontWeight: 'bold',
     padding: '0.15rem 0.5rem',
@@ -1213,7 +1213,7 @@ const styles = {
     display: 'block',
     fontSize: '1.15rem',
     fontWeight: 'bold',
-    color: '#fff'
+    color: 'var(--text-main)'
   },
   productStock: {
     display: 'block',
@@ -1288,8 +1288,8 @@ const styles = {
     margin: '0 auto'
   },
   demoBanner: {
-    background: 'rgba(249, 115, 22, 0.05)',
-    border: '1px solid rgba(249, 115, 22, 0.2)',
+    background: 'rgba(17, 24, 39, 0.03)',
+    border: '1px solid rgba(17, 24, 39, 0.08)',
     padding: '0.75rem 1rem',
     borderRadius: '8px',
     display: 'flex',
