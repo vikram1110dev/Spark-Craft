@@ -32,7 +32,7 @@ import {
 import './App.css';
 import heroImg from './assets/hero.png';
 
-// Initial Mock spare parts catalog data
+// Mock spare parts catalog data
 const INITIAL_SPARES = [
   { id: 1, name: 'Brembo Sintered Brake Pads', category: 'Brakes', price: 89.99, stock: 12, rating: 4.9, desc: 'High friction coefficient pads for maximum stopping power.' },
   { id: 2, name: 'NGK Iridium IX Spark Plug (Pack of 4)', category: 'Engine', price: 45.50, stock: 8, rating: 4.8, desc: 'Designed specifically for high-performance motorcycle engines.' },
@@ -83,7 +83,7 @@ const INITIAL_BOOKINGS = [
 // Mock initial enquiries
 const INITIAL_ENQUIRIES = [
   { id: 1, name: 'Alex Hunter', email: 'alex@example.com', subject: 'Parts Availability Inquiry', message: 'Do you have fork seals for a 2021 Kawasaki Ninja 400 in stock?', resolved: false },
-  { id: 2, name: 'Sarah Connor', email: 'sarah@example.com', subject: 'Bulk Order Discount', message: 'Looking to purchase 10 packs of NGK Iridium spark plugs. Do you offer bulk trade discounts?', resolved: true }
+  { id: 2, name: Sarah.name || 'Sarah Connor', email: 'sarah@example.com', subject: 'Bulk Order Discount', message: 'Looking to purchase 10 packs of NGK Iridium spark plugs. Do you offer bulk trade discounts?', resolved: true }
 ];
 
 function App() {
@@ -131,7 +131,15 @@ function App() {
   }, [enquiries]);
 
   // Admin Authentication State
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(() => {
+    const saved = sessionStorage.getItem('spark_admin_auth');
+    return saved ? JSON.parse(saved) : false;
+  });
+
+  useEffect(() => {
+    sessionStorage.setItem('spark_admin_auth', JSON.stringify(isAdminLoggedIn));
+  }, [isAdminLoggedIn]);
+
   const [adminCredentials, setAdminCredentials] = useState({ email: '', password: '' });
   const [adminLoginError, setAdminLoginError] = useState('');
 
@@ -176,6 +184,34 @@ function App() {
     stock: '',
     desc: ''
   });
+
+  // Listen to secret URL hash changes for admin privacy
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash === '#admin') {
+        setActiveTab(isAdminLoggedIn ? 'admin-dashboard' : 'admin-login');
+      } else if (hash === '#home' || hash === '') {
+        setActiveTab('home');
+      } else if (hash === '#catalog') {
+        setActiveTab('catalog');
+      } else if (hash === '#services' && showGarage) {
+        setActiveTab('services');
+      } else if (hash === '#tracking' && showGarage) {
+        setActiveTab('tracking');
+      } else if (hash === '#contact') {
+        setActiveTab('contact');
+      } else if (hash === '#book' && showGarage) {
+        setActiveTab('book');
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    // Check initial hash on mount
+    handleHashChange();
+
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [isAdminLoggedIn, showGarage]);
 
   // Cart helper functions
   const addToCart = (part) => {
@@ -262,6 +298,25 @@ function App() {
     });
   };
 
+  // Simulate advancing the status of a tracked booking for demo purposes
+  const advanceTrackedStatus = () => {
+    if (!trackedBooking) return;
+    const currentIdx = trackedBooking.statusIndex;
+    const nextIdx = (currentIdx + 1) % STATUS_STEPS.length;
+    
+    // Update bookings state
+    const updatedBookings = bookings.map(b => {
+      if (b.code === trackedBooking.code) {
+        return { ...b, statusIndex: nextIdx };
+      }
+      return b;
+    });
+    setBookings(updatedBookings);
+
+    // Update locally tracked item
+    setTrackedBooking(prev => ({ ...prev, statusIndex: nextIdx }));
+  };
+
   // Handle Tracking Search
   const handleTrackSubmit = (e) => {
     e.preventDefault();
@@ -294,6 +349,11 @@ function App() {
   // Switch Screen logic
   const switchScreen = (tabName) => {
     setActiveTab(tabName);
+    if (tabName === 'admin-login' || tabName === 'admin-dashboard') {
+      window.location.hash = 'admin';
+    } else {
+      window.location.hash = tabName;
+    }
     window.scrollTo({
       top: 0,
       behavior: 'smooth'
@@ -308,7 +368,7 @@ function App() {
       setAdminLoginError('');
       switchScreen('admin-dashboard');
     } else {
-      setAdminLoginError('Invalid admin email or password. Hint: admin@sparkcraft.com / admin123');
+      setAdminLoginError('Invalid admin credentials.');
     }
   };
 
@@ -416,19 +476,13 @@ function App() {
               Contact Us
             </button>
             
-            {isAdminLoggedIn ? (
+            {/* Admin panel link is hidden from navbar entirely for privacy, but remains in local state if authenticated */}
+            {isAdminLoggedIn && (
               <button 
                 onClick={() => switchScreen('admin-dashboard')} 
                 style={activeTab === 'admin-dashboard' ? { ...styles.navLink, ...styles.navLinkActive } : styles.navLink}
               >
                 Admin Panel
-              </button>
-            ) : (
-              <button 
-                onClick={() => switchScreen('admin-login')} 
-                style={activeTab === 'admin-login' ? { ...styles.navLink, ...styles.navLinkActive } : styles.navLink}
-              >
-                Admin Login
               </button>
             )}
           </div>
@@ -562,7 +616,7 @@ function App() {
           </section>
         )}
 
-        {/* SCREEN 2: Services */}
+        {/* SCREEN 2: Services (Only shown if Garage is Active) */}
         {showGarage && activeTab === 'services' && (
           <section className="animate-fade-in-up" style={styles.sectionSpacing}>
             <div style={styles.sectionHeader}>
@@ -705,7 +759,7 @@ function App() {
           </section>
         )}
 
-        {/* SCREEN 4: Live Status Tracker */}
+        {/* SCREEN 4: Live Status Tracker (Only shown if Garage is Active) */}
         {showGarage && activeTab === 'tracking' && (
           <section className="animate-fade-in-up" style={styles.sectionSpacing}>
             <div style={styles.sectionHeader}>
@@ -947,7 +1001,7 @@ function App() {
                   <div>
                     <h4 style={{ fontSize: '1rem', fontWeight: 'bold' }}>Phone Support</h4>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: '0.25rem' }}>+1 (555) 019-2834</p>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Toll Free parts line</p>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.8.0rem' }}>Toll Free parts line</p>
                   </div>
                 </div>
 
@@ -1101,9 +1155,8 @@ function App() {
               </form>
 
               <div style={{ marginTop: '1.5rem', fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-                <strong>Demo Access:</strong><br />
-                Email: <code>admin@sparkcraft.com</code><br />
-                Password: <code>admin123</code>
+                <strong>Access Instruction:</strong><br />
+                To access this page privately in the future, type <code>#admin</code> at the end of the website URL.
               </div>
             </div>
           </section>
