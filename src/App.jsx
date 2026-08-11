@@ -239,7 +239,8 @@ function App() {
   };
 
   return (
-    <div className="bg-gradient-wrapper">
+    <>
+      <div className="bg-gradient-wrapper"></div>
       {/* Top Navbar */}
       <nav style={styles.nav}>
         <div className="app-container" style={styles.navContainer}>
@@ -823,7 +824,7 @@ function App() {
           <p>© 2026 Spark Craft Inc. All Rights Reserved. Crafted for precision rides.</p>
         </div>
       </footer>
-    </div>
+    </>
   );
 }
 
@@ -835,7 +836,7 @@ const styles = {
     left: 0,
     right: 0,
     height: '4.5rem',
-    background: 'rgba(7, 10, 19, 0.8)',
+    background: 'rgba(255, 255, 255, 0.8)',
     backdropFilter: 'blur(16px)',
     borderBottom: '1px solid var(--border)',
     zIndex: 100,
@@ -869,11 +870,11 @@ const styles = {
     fontSize: '1.25rem',
     fontWeight: 800,
     letterSpacing: '0.05em',
-    color: '#fff'
+    color: 'var(--text-main)'
   },
   logoBadge: {
     fontSize: '0.65rem',
-    background: 'rgba(255, 255, 255, 0.08)',
+    background: 'rgba(17, 24, 39, 0.04)',
     color: 'var(--primary)',
     padding: '0.15rem 0.4rem',
     borderRadius: '4px',
@@ -904,7 +905,7 @@ const styles = {
   },
   cartButton: {
     position: 'relative',
-    background: 'rgba(255, 255, 255, 0.04)',
+    background: 'rgba(17, 24, 39, 0.02)',
     border: '1px solid var(--border)',
     color: 'var(--text-main)',
     width: '40px',
@@ -1456,7 +1457,7 @@ const styles = {
   footer: {
     borderTop: '1px solid var(--border)',
     padding: '4rem 0 2rem',
-    background: '#070A13',
+    background: '#FFFFFF',
     marginTop: '6rem'
   },
   footerGrid: {
