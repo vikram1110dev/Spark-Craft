@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Wrench, 
   ShoppingBag, 
@@ -20,7 +20,9 @@ import {
   Mail,
   Send,
   Sliders,
-  ChevronRight
+  ChevronRight,
+  CheckCircle2,
+  Info
 } from 'lucide-react';
 import './App.css';
 import heroImg from './assets/hero.png';
@@ -84,8 +86,59 @@ const INITIAL_BOOKINGS = [
 // Mock initial enquiries
 const INITIAL_ENQUIRIES = [
   { id: 1, name: 'Alex Hunter', email: 'alex@example.com', subject: 'Parts Availability Inquiry', message: 'Do you have fork seals for a 2021 Kawasaki Ninja 400 in stock?', resolved: false },
-  { id: 2, name: 'Sarah Connor', email: 'sarah@example.com', subject: 'Bulk Order Discount', message: 'Looking to purchase 10 packs of NGK Iridium spark plugs. Do you offer bulk trade discounts?', resolved: true }
-];
+  { id: 2, name: 'Sarah Connor', email: 'sarah@example.com', subject: 'Bulk Order Discount', message: 'Looking to purchase 10 packs of NGK Iridium spark plugs. Do you offer bulk trade discounts?', resolved: true }];
+
+// ─────────────────────────────────────────────
+// TOAST NOTIFICATION COMPONENT
+// ─────────────────────────────────────────────
+function Toast({ toasts, removeToast }) {
+  return (
+    <div style={{
+      position: 'fixed',
+      bottom: '1.5rem',
+      right: '1.5rem',
+      zIndex: 9999,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '0.75rem',
+      pointerEvents: 'none'
+    }}>
+      {toasts.map(t => (
+        <div
+          key={t.id}
+          className="animate-fade-in-up"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            background: t.type === 'success' ? 'rgba(16,185,129,0.95)'
+              : t.type === 'error' ? 'rgba(239,68,68,0.95)'
+              : 'rgba(17,24,39,0.95)',
+            color: '#fff',
+            padding: '0.85rem 1.25rem',
+            borderRadius: '12px',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+            fontSize: '0.9rem',
+            fontWeight: 500,
+            backdropFilter: 'blur(8px)',
+            pointerEvents: 'all',
+            maxWidth: '340px',
+            border: '1px solid rgba(255,255,255,0.15)'
+          }}
+        >
+          {t.type === 'success' ? <CheckCircle2 size={18} /> : t.type === 'error' ? <AlertCircle size={18} /> : <Info size={18} />}
+          <span style={{ flex: 1 }}>{t.message}</span>
+          <button
+            onClick={() => removeToast(t.id)}
+            style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', opacity: 0.7, padding: '0 0.25rem' }}
+          >
+            <X size={14} />
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function App() {
   // Navigation active tab (highlighter)
@@ -166,7 +219,18 @@ function App() {
   });
   const [contactSuccess, setContactSuccess] = useState(false);
 
-  // Cart State
+  // Toast Notification State
+  const [toasts, setToasts] = useState([]);
+  const toastIdRef = useRef(0);
+
+  const showToast = (message, type = 'info') => {
+    const id = ++toastIdRef.current;
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3500);
+  };
+  const removeToast = (id) => setToasts(prev => prev.filter(t => t.id !== id));
+
+
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
@@ -303,15 +367,16 @@ function App() {
     const result = bookings.find(b => b.code.toUpperCase().trim() === searchTrackingCode.toUpperCase().trim());
     if (result) {
       setTrackedBooking(result);
+      showToast(`Booking ${result.code} found!`, 'success');
     } else {
       setTrackedBooking(null);
-      alert('Tracking Code not found. Please try "SC-77301" for a demo booking!');
+      showToast('Tracking code not found. Try "SC-77301" for a demo!', 'error');
     }
   };
 
   // Checkout simulation
   const handleCheckout = () => {
-    alert(`Thank you! Checkout of $${totalCartPrice.toFixed(2)} completed successfully!`);
+    showToast(`🎉 Order placed! Total $${totalCartPrice.toFixed(2)} — Thank you!`, 'success');
     setCart([]);
     setIsCartOpen(false);
   };
@@ -1187,6 +1252,9 @@ function App() {
           <p>© 2026 Spark Craft Inc. All Rights Reserved. Crafted for precision rides.</p>
         </div>
       </footer>
+
+      {/* Toast Notification Renderer */}
+      <Toast toasts={toasts} removeToast={removeToast} />
     </>
   );
 }
