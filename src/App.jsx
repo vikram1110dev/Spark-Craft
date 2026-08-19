@@ -22,7 +22,8 @@ import {
   Sliders,
   ChevronRight,
   CheckCircle2,
-  Info
+  Info,
+  Star
 } from 'lucide-react';
 import './App.css';
 import heroImg from './assets/hero.png';
@@ -136,6 +137,25 @@ function Toast({ toasts, removeToast }) {
           </button>
         </div>
       ))}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// STAR RATING DISPLAY COMPONENT
+// ─────────────────────────────────────────────
+function StarRating({ rating }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+      {[1, 2, 3, 4, 5].map(i => (
+        <Star
+          key={i}
+          size={12}
+          fill={i <= Math.round(rating) ? '#F59E0B' : 'transparent'}
+          color={i <= Math.round(rating) ? '#F59E0B' : '#D1D5DB'}
+        />
+      ))}
+      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginLeft: '0.25rem' }}>{rating.toFixed(1)}</span>
     </div>
   );
 }
@@ -761,6 +781,9 @@ function App() {
                           ))}
                         </div>
                       )}
+
+                      {/* Star Rating */}
+                      <StarRating rating={part.rating} />
 
                       <div style={styles.productFooter}>
                         <div>
