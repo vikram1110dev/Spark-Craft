@@ -283,6 +283,7 @@ function App() {
   // Catalog State
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
+  const [sortBy, setSortBy] = useState('default');
 
   // Tracking Code Input
   const [searchTrackingCode, setSearchTrackingCode] = useState('SC-77301');
@@ -444,6 +445,14 @@ function App() {
     }
     
     return matchesSearch && matchesCategory && matchesBike;
+  });
+
+  // Apply sorting to filtered results
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    if (sortBy === 'price-asc') return a.price - b.price;
+    if (sortBy === 'price-desc') return b.price - a.price;
+    if (sortBy === 'rating') return b.rating - a.rating;
+    return 0; // default order
   });
 
   const categories = ['All', 'Engine', 'Brakes', 'Filters', 'Controls', 'Fluids', 'Electrical', 'Drivetrain'];
@@ -789,10 +798,31 @@ function App() {
                   </button>
                 ))}
               </div>
+
+              {/* Sort Dropdown */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', paddingTop: '0.5rem', borderTop: '1px solid var(--border)' }}>
+                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>Sort by:</span>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  {[
+                    { key: 'default', label: 'Default' },
+                    { key: 'price-asc', label: 'Price: Low → High' },
+                    { key: 'price-desc', label: 'Price: High → Low' },
+                    { key: 'rating', label: '⭐ Top Rated' }
+                  ].map(opt => (
+                    <button
+                      key={opt.key}
+                      onClick={() => setSortBy(opt.key)}
+                      style={sortBy === opt.key ? styles.filterTabActive : styles.filterTab}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
 
             {/* Catalog Grid */}
-            {filteredProducts.length === 0 ? (
+            {sortedProducts.length === 0 ? (
               <div className="glass-panel" style={styles.emptyCatalog}>
                 <AlertCircle size={48} color="var(--text-muted)" style={{ marginBottom: '1rem' }} />
                 <h3>No Compatible Spare Parts Found</h3>
@@ -800,7 +830,7 @@ function App() {
               </div>
             ) : (
               <div style={styles.catalogGrid}>
-                {filteredProducts.map(part => (
+                {sortedProducts.map(part => (
                   <div key={part.id} className="glass-panel" style={styles.productCard}>
                     <div style={styles.productBadge}>{part.category}</div>
                     <div style={styles.productDetails}>
