@@ -24,7 +24,8 @@ import {
   CheckCircle2,
   Info,
   Star,
-  Heart
+  Heart,
+  ChevronUp
 } from 'lucide-react';
 import './App.css';
 import heroImg from './assets/hero.png';
@@ -250,6 +251,15 @@ function App() {
     setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3500);
   };
   const removeToast = (id) => setToasts(prev => prev.filter(t => t.id !== id));
+
+  // Back-to-top visibility state
+  const [showBackToTop, setShowBackToTop] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setShowBackToTop(window.scrollY > 400);
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
   // Wishlist State
   const [wishlist, setWishlist] = useState(() => {
@@ -1373,6 +1383,35 @@ function App() {
             )}
           </div>
         </div>
+      )}
+
+      {/* Back to Top Floating Button */}
+      {showBackToTop && (
+        <button
+          onClick={scrollToTop}
+          className="animate-fade-in-up"
+          title="Back to top"
+          style={{
+            position: 'fixed',
+            bottom: '6rem',
+            right: '1.5rem',
+            zIndex: 150,
+            width: '44px',
+            height: '44px',
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)',
+            color: '#fff',
+            border: 'none',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+            transition: 'all 0.3s ease'
+          }}
+        >
+          <ChevronUp size={20} />
+        </button>
       )}
 
       {/* Toast Notification Renderer */}
