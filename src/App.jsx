@@ -23,7 +23,8 @@ import {
   ChevronRight,
   CheckCircle2,
   Info,
-  Star
+  Star,
+  Heart
 } from 'lucide-react';
 import './App.css';
 import heroImg from './assets/hero.png';
@@ -250,6 +251,21 @@ function App() {
   };
   const removeToast = (id) => setToasts(prev => prev.filter(t => t.id !== id));
 
+  // Wishlist State
+  const [wishlist, setWishlist] = useState(() => {
+    const saved = localStorage.getItem('spark_wishlist');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const toggleWishlist = (part) => {
+    setWishlist(prev => {
+      const exists = prev.find(i => i.id === part.id);
+      const updated = exists ? prev.filter(i => i.id !== part.id) : [...prev, part];
+      localStorage.setItem('spark_wishlist', JSON.stringify(updated));
+      showToast(exists ? 'Removed from wishlist' : `${part.name} saved to wishlist!`, exists ? 'info' : 'success');
+      return updated;
+    });
+  };
+  const isWishlisted = (id) => wishlist.some(i => i.id === id);
 
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -483,6 +499,15 @@ function App() {
           </div>
 
           <div style={styles.navActions}>
+            {/* Wishlist Heart Button in Navbar */}
+            <button
+              onClick={() => switchScreen('wishlist')}
+              style={{ ...styles.cartButton, position: 'relative' }}
+              title="My Wishlist"
+            >
+              <Heart size={20} fill={wishlist.length > 0 ? '#EF4444' : 'none'} color={wishlist.length > 0 ? '#EF4444' : 'var(--text-main)'} />
+              {wishlist.length > 0 && <span style={styles.cartCount}>{wishlist.length}</span>}
+            </button>
             <button 
               onClick={() => setIsCartOpen(true)} 
               style={styles.cartButton}
@@ -790,14 +815,30 @@ function App() {
                           <span style={styles.productPrice}>${part.price.toFixed(2)}</span>
                           <span style={styles.productStock}>In Stock: {part.stock}</span>
                         </div>
-                        <button 
-                          onClick={() => addToCart(part)}
-                          className="btn-primary" 
-                          style={styles.addToCartBtn}
-                        >
-                          <Plus size={16} />
-                          Add
-                        </button>
+                        <div style={{ display: 'flex', gap: '0.4rem' }}>
+                          <button
+                            onClick={() => toggleWishlist(part)}
+                            title={isWishlisted(part.id) ? 'Remove from wishlist' : 'Save to wishlist'}
+                            style={{
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              padding: '0.4rem 0.5rem', borderRadius: '8px', cursor: 'pointer',
+                              background: isWishlisted(part.id) ? 'rgba(239,68,68,0.08)' : 'rgba(17,24,39,0.04)',
+                              border: isWishlisted(part.id) ? '1px solid rgba(239,68,68,0.3)' : '1px solid var(--border)',
+                              color: isWishlisted(part.id) ? '#EF4444' : 'var(--text-muted)',
+                              transition: 'all 0.2s ease'
+                            }}
+                          >
+                            <Heart size={14} fill={isWishlisted(part.id) ? '#EF4444' : 'none'} />
+                          </button>
+                          <button 
+                            onClick={() => addToCart(part)}
+                            className="btn-primary" 
+                            style={styles.addToCartBtn}
+                          >
+                            <Plus size={16} />
+                            Add
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1275,6 +1316,64 @@ function App() {
           <p>© 2026 Spark Craft Inc. All Rights Reserved. Crafted for precision rides.</p>
         </div>
       </footer>
+
+      {/* WISHLIST OVERLAY PANEL */}
+      {activeTab === 'wishlist' && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, zIndex: 200,
+            background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(6px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}
+          onClick={() => switchScreen('catalog')}
+        >
+          <div
+            className="glass-panel animate-fade-in-up"
+            style={{ width: '90%', maxWidth: '760px', maxHeight: '80vh', overflowY: 'auto', padding: '2.5rem' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <Heart size={22} color="#EF4444" fill="#EF4444" />
+                <h2 style={{ fontSize: '1.5rem' }}>My Wishlist</h2>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', background: 'rgba(17,24,39,0.05)', border: '1px solid var(--border)', padding: '0.15rem 0.5rem', borderRadius: '20px' }}>{wishlist.length} saved</span>
+              </div>
+              <button onClick={() => switchScreen('catalog')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={22} /></button>
+            </div>
+            {wishlist.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-muted)' }}>
+                <Heart size={48} style={{ marginBottom: '1rem', opacity: 0.25 }} />
+                <p style={{ fontSize: '1rem', fontWeight: 600 }}>No saved items yet.</p>
+                <p style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>Tap the ♡ on any part in the catalog to save it here.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1.25rem' }}>
+                {wishlist.map(part => (
+                  <div key={part.id} style={{ background: 'rgba(255,255,255,0.65)', border: '1px solid var(--border)', borderRadius: '12px', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', textAlign: 'left' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 'bold', letterSpacing: '0.05em' }}>{part.category}</span>
+                        <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginTop: '0.15rem' }}>{part.name}</h4>
+                      </div>
+                      <button onClick={() => toggleWishlist(part)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', padding: '0.25rem' }}><X size={14} /></button>
+                    </div>
+                    <StarRating rating={part.rating} />
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>{part.desc}</p>
+                    <span style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>${part.price.toFixed(2)}</span>
+                    <button
+                      onClick={() => { addToCart(part); showToast(`${part.name} moved to cart!`, 'success'); }}
+                      className="btn-primary"
+                      style={{ width: '100%', justifyContent: 'center', fontSize: '0.85rem', padding: '0.55rem 1rem' }}
+                    >
+                      <ShoppingBag size={14} /> Move to Cart
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Toast Notification Renderer */}
       <Toast toasts={toasts} removeToast={removeToast} />
