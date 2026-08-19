@@ -269,13 +269,14 @@ function App() {
     return saved ? JSON.parse(saved) : [];
   });
   const toggleWishlist = (part) => {
-    setWishlist(prev => {
-      const exists = prev.find(i => i.id === part.id);
-      const updated = exists ? prev.filter(i => i.id !== part.id) : [...prev, part];
-      localStorage.setItem('spark_wishlist', JSON.stringify(updated));
-      showToast(exists ? 'Removed from wishlist' : `${part.name} saved to wishlist!`, exists ? 'info' : 'success');
-      return updated;
-    });
+    // Check outside updater to avoid StrictMode double-invoke
+    const exists = wishlist.find(i => i.id === part.id);
+    const updated = exists
+      ? wishlist.filter(i => i.id !== part.id)
+      : [...wishlist, part];
+    localStorage.setItem('spark_wishlist', JSON.stringify(updated));
+    showToast(exists ? 'Removed from wishlist' : `${part.name} saved to wishlist!`, exists ? 'info' : 'success');
+    setWishlist(updated);
   };
   const isWishlisted = (id) => wishlist.some(i => i.id === id);
 
@@ -301,13 +302,18 @@ function App() {
 
   // Cart helper functions
   const addToCart = (part) => {
+    // Check current cart OUTSIDE the updater to avoid StrictMode double-invoke
+    const existing = cart.find(item => item.id === part.id);
+    if (existing) {
+      showToast(`${part.name} quantity updated in cart.`, 'info');
+    } else {
+      showToast(`✅ ${part.name} added to cart!`, 'success');
+    }
     setCart((prevCart) => {
-      const existing = prevCart.find(item => item.id === part.id);
-      if (existing) {
-        showToast(`${part.name} quantity updated in cart.`, 'info');
+      const found = prevCart.find(item => item.id === part.id);
+      if (found) {
         return prevCart.map(item => item.id === part.id ? { ...item, qty: Math.min(item.qty + 1, part.stock) } : item);
       }
-      showToast(`✅ ${part.name} added to cart!`, 'success');
       return [...prevCart, { ...part, qty: 1 }];
     });
     setCartPulseKey(k => k + 1);
