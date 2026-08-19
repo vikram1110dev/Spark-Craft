@@ -244,6 +244,8 @@ function App() {
   // Toast Notification State
   const [toasts, setToasts] = useState([]);
   const toastIdRef = useRef(0);
+  const cartPulseKeyRef = useRef(0);
+  const [cartPulseKey, setCartPulseKey] = useState(0);
 
   const showToast = (message, type = 'info') => {
     const id = ++toastIdRef.current;
@@ -302,11 +304,13 @@ function App() {
     setCart((prevCart) => {
       const existing = prevCart.find(item => item.id === part.id);
       if (existing) {
+        showToast(`${part.name} quantity updated in cart.`, 'info');
         return prevCart.map(item => item.id === part.id ? { ...item, qty: Math.min(item.qty + 1, part.stock) } : item);
       }
+      showToast(`✅ ${part.name} added to cart!`, 'success');
       return [...prevCart, { ...part, qty: 1 }];
     });
-    setIsCartOpen(true);
+    setCartPulseKey(k => k + 1);
   };
 
   const updateQty = (id, change) => {
@@ -532,7 +536,7 @@ function App() {
               style={styles.cartButton}
             >
               <ShoppingBag size={20} />
-              {cart.length > 0 && <span style={styles.cartCount}>{cart.reduce((a, c) => a + c.qty, 0)}</span>}
+              {cart.length > 0 && <span key={cartPulseKey} className="cart-badge-pulse" style={styles.cartCount}>{cart.reduce((a, c) => a + c.qty, 0)}</span>}
             </button>
             {showGarage && (
               <button onClick={() => switchScreen('book')} style={styles.navCTA}>
