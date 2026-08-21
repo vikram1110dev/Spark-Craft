@@ -18,12 +18,30 @@ import {
 } from 'lucide-react';
 import './index.css';
 
-// BIKE DATA DEFINITION
-const BIKE_BRANDS = {
-  'Yamaha': ['Yamaha YZF-R15', 'Yamaha MT-15', 'Yamaha FZ-S'],
-  'KTM': ['KTM RC 390', 'KTM Duke 250', 'KTM Adventure 390'],
-  'Royal Enfield': ['RE Classic 350', 'RE Himalayan 450', 'RE Continental GT 650'],
-  'Honda': ['Honda CB350 H\'ness', 'Honda CBR650R', 'Honda Hornet 2.0']
+// INITIAL BIKE DATA DEFINITION
+const INITIAL_BIKE_BRANDS = {
+  'ROYAL ENFIELD': [
+    'Classic 350', 'Classic 500', 'Meteor 350', 'Himalayan 450', 
+    'Guerrilla 450', 'Super Meteor 650', 'Himalayan 411', 'Scram 411', 
+    'Interceptor 650', 'Continental GT 650', 'Hunter 350', 'Thunderbird 350'
+  ],
+  'TVS': [
+    'Apachr RTX 300', 'Apache RR 310', 'Apache RTR 310', 'Apache RTR 200', 'Apache 160'
+  ],
+  'BMW': [
+    'GS 310', '310 R', 'S 1000 RR', 'F 450 GS'
+  ],
+  'KTM': [
+    'Duke 125', 'Duke 200', 'Duke 250', 'Duke 390', 'RC 125', 'RC 200', 
+    'RC 390', 'Adventure 250', 'Adventure 390', 'Adventure 390 (2025)', 'DUKE 250 (GEN 3)'
+  ],
+  'YAMAHA': [
+    'XSR 155', 'Aerox', 'R15 V1', 'R15 V2', 'R15 V3', 'R15 V4', 
+    'MT 15', 'MT 09', 'FZ 16', 'FZ-X', 'FZ 250', 'FZ V2'
+  ],
+  'HUSQVARNA': [
+    'Svartpilen 401', 'Vitpilen 401'
+  ]
 };
 
 // Initial Mock spare parts catalog data
@@ -120,6 +138,65 @@ function AdminPortal() {
   useEffect(() => {
     localStorage.setItem('spark_enquiries', JSON.stringify(enquiries));
   }, [enquiries]);
+
+  // Bike Brands state
+  const [bikeBrands, setBikeBrands] = useState(() => {
+    const saved = localStorage.getItem('spark_bike_brands');
+    return saved ? JSON.parse(saved) : INITIAL_BIKE_BRANDS;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('spark_bike_brands', JSON.stringify(bikeBrands));
+  }, [bikeBrands]);
+
+  // Brand Management State
+  const [newBrandName, setNewBrandName] = useState('');
+  const [newBrandModel, setNewBrandModel] = useState('');
+  const [newModelInputs, setNewModelInputs] = useState({});
+
+  const handleAddBrand = (e) => {
+    e.preventDefault();
+    if (!newBrandName.trim() || !newBrandModel.trim()) return;
+    const brandName = newBrandName.toUpperCase();
+    if (bikeBrands[brandName]) {
+      alert('Brand already exists!');
+      return;
+    }
+    setBikeBrands(prev => ({
+      ...prev,
+      [brandName]: [newBrandModel]
+    }));
+    setNewBrandName('');
+    setNewBrandModel('');
+  };
+
+  const handleDeleteBrand = (brand) => {
+    if (confirm(`Are you sure you want to delete ${brand}? This removes all its models.`)) {
+      const newBrands = { ...bikeBrands };
+      delete newBrands[brand];
+      setBikeBrands(newBrands);
+    }
+  };
+
+  const handleAddModel = (brand) => {
+    const model = newModelInputs[brand];
+    if (!model || !model.trim()) return;
+    if (bikeBrands[brand].includes(model)) return;
+    setBikeBrands(prev => ({
+      ...prev,
+      [brand]: [...prev[brand], model]
+    }));
+    setNewModelInputs(prev => ({ ...prev, [brand]: '' }));
+  };
+
+  const handleDeleteModel = (brand, model) => {
+    if (confirm(`Remove ${model} from ${brand}?`)) {
+      setBikeBrands(prev => ({
+        ...prev,
+        [brand]: prev[brand].filter(m => m !== model)
+      }));
+    }
+  };
 
   // Admin Authentication State
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(() => {
@@ -473,7 +550,7 @@ function AdminPortal() {
                     <div style={styles.formGroup}>
                       <label style={styles.formLabel}>Bike Compatibility</label>
                       <div style={styles.checkboxGrid}>
-                        {Object.entries(BIKE_BRANDS).map(([brand, bikes]) => (
+                        {Object.entries(bikeBrands).map(([brand, bikes]) => (
                           <div key={brand} style={{ marginBottom: '0.75rem' }}>
                             <p style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--primary)', marginBottom: '0.25rem' }}>{brand}</p>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
@@ -509,6 +586,63 @@ function AdminPortal() {
                       Add Part to Live Catalog
                     </button>
                   </form>
+                </div>
+
+                <div className="glass-panel" style={{ padding: '2rem', marginTop: '2rem' }}>
+                  <h3 style={{ fontSize: '1.25rem', marginBottom: '1.25rem', textAlign: 'left' }}>Manage Bike Brands & Models</h3>
+                  
+                  {/* Add Brand Form */}
+                  <form onSubmit={handleAddBrand} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', marginBottom: '2rem', background: 'rgba(17,24,39,0.02)', padding: '1rem', borderRadius: '8px' }}>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>New Brand Name</label>
+                      <input 
+                        type="text" required placeholder="e.g. DUCATI" 
+                        value={newBrandName} onChange={(e) => setNewBrandName(e.target.value)} 
+                        style={{ padding: '0.5rem', border: '1px solid #eee', borderRadius: '4px' }} 
+                      />
+                    </div>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Initial Model</label>
+                      <input 
+                        type="text" required placeholder="e.g. Panigale V4" 
+                        value={newBrandModel} onChange={(e) => setNewBrandModel(e.target.value)} 
+                        style={{ padding: '0.5rem', border: '1px solid #eee', borderRadius: '4px' }} 
+                      />
+                    </div>
+                    <button type="submit" className="btn-primary" style={{ padding: '0.6rem 1rem' }}><Plus size={16} /> Add Brand</button>
+                  </form>
+
+                  {/* Existing Brands List */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    {Object.entries(bikeBrands).map(([brand, models]) => (
+                      <div key={brand} style={{ padding: '1rem', border: '1px solid #eee', borderRadius: '8px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                          <h4 style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{brand}</h4>
+                          <button onClick={() => handleDeleteBrand(brand)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Trash2 size={14} /> Delete Brand</button>
+                        </div>
+                        
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
+                          {models.map(model => (
+                            <span key={model} style={{ background: '#f5f5f5', padding: '0.25rem 0.75rem', borderRadius: '100px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              {model} 
+                              <button onClick={() => handleDeleteModel(brand, model)} style={{ background: 'none', border: 'none', color: '#999', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><X size={12} /></button>
+                            </span>
+                          ))}
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <input 
+                            type="text" placeholder="Add new model..." 
+                            value={newModelInputs[brand] || ''} 
+                            onChange={(e) => setNewModelInputs(prev => ({ ...prev, [brand]: e.target.value }))}
+                            onKeyDown={(e) => e.key === 'Enter' && handleAddModel(brand)}
+                            style={{ flex: 1, padding: '0.4rem', border: '1px solid #eee', borderRadius: '4px', fontSize: '0.85rem' }}
+                          />
+                          <button onClick={() => handleAddModel(brand)} style={{ background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: '4px', padding: '0 0.75rem', cursor: 'pointer' }}><Plus size={14} /></button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
 

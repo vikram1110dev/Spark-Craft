@@ -25,17 +25,37 @@ import {
   Info,
   Star,
   Heart,
-  ChevronUp
+  ChevronUp,
+  User,
+  ChevronDown
 } from 'lucide-react';
 import './App.css';
 import heroImg from './assets/hero.png';
 
-// BIKE DATA DEFINITION
-const BIKE_BRANDS = {
-  'Yamaha': ['Yamaha YZF-R15', 'Yamaha MT-15', 'Yamaha FZ-S'],
-  'KTM': ['KTM RC 390', 'KTM Duke 250', 'KTM Adventure 390'],
-  'Royal Enfield': ['RE Classic 350', 'RE Himalayan 450', 'RE Continental GT 650'],
-  'Honda': ['Honda CB350 H\'ness', 'Honda CBR650R', 'Honda Hornet 2.0']
+// INITIAL BIKE DATA DEFINITION
+const INITIAL_BIKE_BRANDS = {
+  'ROYAL ENFIELD': [
+    'Classic 350', 'Classic 500', 'Meteor 350', 'Himalayan 450', 
+    'Guerrilla 450', 'Super Meteor 650', 'Himalayan 411', 'Scram 411', 
+    'Interceptor 650', 'Continental GT 650', 'Hunter 350', 'Thunderbird 350'
+  ],
+  'TVS': [
+    'Apachr RTX 300', 'Apache RR 310', 'Apache RTR 310', 'Apache RTR 200', 'Apache 160'
+  ],
+  'BMW': [
+    'GS 310', '310 R', 'S 1000 RR', 'F 450 GS'
+  ],
+  'KTM': [
+    'Duke 125', 'Duke 200', 'Duke 250', 'Duke 390', 'RC 125', 'RC 200', 
+    'RC 390', 'Adventure 250', 'Adventure 390', 'Adventure 390 (2025)', 'DUKE 250 (GEN 3)'
+  ],
+  'YAMAHA': [
+    'XSR 155', 'Aerox', 'R15 V1', 'R15 V2', 'R15 V3', 'R15 V4', 
+    'MT 15', 'MT 09', 'FZ 16', 'FZ-X', 'FZ 250', 'FZ V2'
+  ],
+  'HUSQVARNA': [
+    'Svartpilen 401', 'Vitpilen 401'
+  ]
 };
 
 // Mock spare parts catalog data
@@ -165,12 +185,30 @@ function StarRating({ rating }) {
 function App() {
   // Navigation active tab (highlighter)
   const [activeTab, setActiveTab] = useState('home');
+  const [hoveredMenu, setHoveredMenu] = useState(null);
 
   // SHOW_GARAGE_SERVICES state (controlled by admin dashboard!)
   const [showGarage, setShowGarage] = useState(() => {
     const saved = localStorage.getItem('spark_show_garage');
     return saved ? JSON.parse(saved) : false;
   });
+
+  // Pull bike brands from local storage
+  const [bikeBrands, setBikeBrands] = useState(() => {
+    const saved = localStorage.getItem('spark_bike_brands');
+    return saved ? JSON.parse(saved) : INITIAL_BIKE_BRANDS;
+  });
+
+  // Listen for storage changes from admin tab
+  useEffect(() => {
+    const handleStorage = (e) => {
+      if (e.key === 'spark_bike_brands' && e.newValue) {
+        setBikeBrands(JSON.parse(e.newValue));
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
 
   // Pull latest spares inventory from local storage (synced with admin panel)
   const [spares, setSpares] = useState(() => {
@@ -450,7 +488,7 @@ function App() {
       matchesBike = part.compatibility && part.compatibility.includes(selectedBike);
     } else if (selectedBrand) {
       // If only brand is selected, check if compatible with ANY bike in that brand
-      const brandBikes = BIKE_BRANDS[selectedBrand] || [];
+      const brandBikes = bikeBrands[selectedBrand] || [];
       matchesBike = part.compatibility && part.compatibility.some(bike => brandBikes.includes(bike));
     }
     
@@ -470,6 +508,7 @@ function App() {
   // Switch Screen logic
   const switchScreen = (tabName) => {
     setActiveTab(tabName);
+    setHoveredMenu(null);
     window.scrollTo({
       top: 0,
       behavior: 'smooth'
@@ -479,180 +518,312 @@ function App() {
   return (
     <>
       <div className="bg-gradient-wrapper"></div>
-      {/* Top Navbar */}
-      <nav style={styles.nav}>
-        <div className="app-container" style={styles.navContainer}>
-          <div style={styles.logoGroup} onClick={() => switchScreen('home')}>
-            <div style={styles.logoIcon}>
-              <Wrench size={22} color="#fff" />
-            </div>
-            <span style={styles.logoText}>SPARK CRAFT</span>
-            <span style={styles.logoBadge}>MOTO CLINIC</span>
-          </div>
-
-          <div style={styles.navLinks}>
-            <button 
-              onClick={() => switchScreen('home')} 
-              style={activeTab === 'home' ? { ...styles.navLink, ...styles.navLinkActive } : styles.navLink}
-            >
-              Store
-            </button>
-            {showGarage && (
-              <button 
-                onClick={() => switchScreen('services')} 
-                style={activeTab === 'services' ? { ...styles.navLink, ...styles.navLinkActive } : styles.navLink}
-              >
-                Services
-              </button>
-            )}
-            <button 
-              onClick={() => switchScreen('catalog')} 
-              style={activeTab === 'catalog' ? { ...styles.navLink, ...styles.navLinkActive } : styles.navLink}
-            >
-              Spare Parts
-            </button>
-            {showGarage && (
-              <button 
-                onClick={() => switchScreen('tracking')} 
-                style={activeTab === 'tracking' ? { ...styles.navLink, ...styles.navLinkActive } : styles.navLink}
-              >
-                Track Ride
-              </button>
-            )}
-            <button 
-              onClick={() => switchScreen('contact')} 
-              style={activeTab === 'contact' ? { ...styles.navLink, ...styles.navLinkActive } : styles.navLink}
-            >
-              Contact Us
-            </button>
-          </div>
-
-          <div style={styles.navActions}>
-            {/* Wishlist Heart Button in Navbar */}
-            <button
-              onClick={() => switchScreen('wishlist')}
-              style={{ ...styles.cartButton, position: 'relative' }}
-              title="My Wishlist"
-            >
-              <Heart size={20} fill={wishlist.length > 0 ? '#EF4444' : 'none'} color={wishlist.length > 0 ? '#EF4444' : 'var(--text-main)'} />
-              {wishlist.length > 0 && <span style={styles.cartCount}>{wishlist.length}</span>}
-            </button>
-            <button 
-              onClick={() => setIsCartOpen(true)} 
-              style={styles.cartButton}
-            >
-              <ShoppingBag size={20} />
-              {cart.length > 0 && <span key={cartPulseKey} className="cart-badge-pulse" style={styles.cartCount}>{cart.reduce((a, c) => a + c.qty, 0)}</span>}
-            </button>
-            {showGarage && (
-              <button onClick={() => switchScreen('book')} style={styles.navCTA}>
-                <Calendar size={16} />
-                Book Slot
-              </button>
-            )}
+      {/* 3-Tier Navigation Header */}
+      <header style={styles.headerWrapper} onMouseLeave={() => setHoveredMenu(null)}>
+        {/* Tier 1: Top Announcement Bar */}
+        <div style={styles.topBar}>
+          <div className="app-container" style={styles.topBarContainer}>
+            <span style={styles.topBarText}></span>
+            <span style={styles.topBarTextCenter}>7-DAYS EASY RETURN AND EXCHANGE ✅</span>
+            <span style={styles.topBarText}>DUE TO HIGH ORDER VOLUME SLIGHT DELAY IN DISPATCHES ARE EXPECTED UNTIL 19TH AUG</span>
           </div>
         </div>
-      </nav>
+
+        {/* Tier 2: Search & Actions */}
+        <div style={styles.middleBar}>
+          <div className="app-container" style={styles.middleBarContainer}>
+            {/* Logo */}
+            <div style={{...styles.logoGroup, gap: '0'}} onClick={() => switchScreen('home')}>
+              <div style={styles.sparifyLogoWrapper}>
+                 <span style={styles.sparifyLogoTextMain}>Spark Craft</span>
+                 <Wrench size={16} color="#000" style={{marginLeft: '-4px', marginTop: '-10px'}}/>
+              </div>
+            </div>
+
+            {/* Search Bar */}
+            <div style={styles.mainSearchContainer}>
+              <Search size={18} color="var(--text-muted)" style={{marginLeft: '1rem'}} />
+              <input 
+                type="text" 
+                placeholder="Search For NGK I"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={styles.mainSearchInput}
+              />
+            </div>
+
+            {/* Actions */}
+            <div style={styles.middleBarActions}>
+              <button style={styles.iconBtn}>
+                <User size={22} color="#000" />
+              </button>
+              <button onClick={() => setIsCartOpen(true)} style={styles.iconBtnCart}>
+                <ShoppingBag size={22} color="#000" />
+                <span style={{marginLeft: '0.5rem', fontWeight: 500, color: '#000'}}>Cart</span>
+                {cart.length > 0 && <span className="cart-badge-pulse" style={styles.cartCountSparify}>{cart.reduce((a, c) => a + c.qty, 0)}</span>}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Tier 3: Bottom Links & Mega Menu */}
+        <div style={styles.bottomBar}>
+          <div className="app-container" style={styles.bottomBarContainer}>
+            <nav style={styles.bottomNavLinks}>
+              <button onClick={() => switchScreen('home')} style={styles.bottomNavLink}>Home</button>
+              <button onClick={() => switchScreen('catalog')} style={styles.bottomNavLink}>All Collections</button>
+              
+              <div 
+                style={styles.navItemWithDropdown}
+                onMouseEnter={() => setHoveredMenu('bike')}
+              >
+                <button style={styles.bottomNavLinkDropdown}>Shop By Bike <ChevronDown size={14} /></button>
+                {hoveredMenu === 'bike' && (
+                  <div style={styles.megaMenuDropdown}>
+                    <div className="app-container" style={styles.megaMenuGrid}>
+                      {Object.entries(bikeBrands).map(([brand, models]) => (
+                        <div key={brand} style={styles.megaMenuColumn}>
+                          <h4 style={styles.megaMenuHeading}>{brand}</h4>
+                          {models.map((model, idx) => (
+                            <a key={idx} href="#" style={styles.megaMenuLink} onClick={(e) => { e.preventDefault(); setSelectedBrand(brand); setSelectedBike(model); switchScreen('catalog'); }}>{model}</a>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              <div 
+                style={styles.navItemWithDropdown}
+                onMouseEnter={() => setHoveredMenu('spares')}
+              >
+                <button style={styles.bottomNavLinkDropdown}>Shop By Spares <ChevronDown size={14} /></button>
+                {hoveredMenu === 'spares' && (
+                  <div style={styles.megaMenuDropdown}>
+                    <div className="app-container" style={styles.megaMenuGrid}>
+                      <div style={styles.megaMenuColumn}>
+                        <h4 style={styles.megaMenuHeading}>Service parts</h4>
+                        <a href="#" style={styles.megaMenuLink}>Air filter</a>
+                        <a href="#" style={styles.megaMenuLink}>Oil filter</a>
+                        <a href="#" style={styles.megaMenuLink}>Spark plug</a>
+                        <a href="#" style={styles.megaMenuLink}>Damper rubber</a>
+                        <a href="#" style={styles.megaMenuLink}>Chain lube</a>
+                        <br/>
+                        <h4 style={styles.megaMenuHeading}>Body parts</h4>
+                        <a href="#" style={styles.megaMenuLink}>Visor</a>
+                        <a href="#" style={styles.megaMenuLink}>Front shield</a>
+                        <a href="#" style={styles.megaMenuLink}>Mirror</a>
+                      </div>
+                      <div style={styles.megaMenuColumn}>
+                        <h4 style={styles.megaMenuHeading}>Brake system</h4>
+                        <a href="#" style={styles.megaMenuLink}>Brake pad</a>
+                        <a href="#" style={styles.megaMenuLink}>Brake shoe</a>
+                        <a href="#" style={styles.megaMenuLink}>Brake pedal</a>
+                        <a href="#" style={styles.megaMenuLink}>Disc plate</a>
+                        <a href="#" style={styles.megaMenuLink}>Master cylinder</a>
+                        <a href="#" style={styles.megaMenuLink}>Brake housing</a>
+                        <a href="#" style={styles.megaMenuLink}>Brake cable</a>
+                        <br/>
+                        <h4 style={styles.megaMenuHeading}>Gear system</h4>
+                        <a href="#" style={styles.megaMenuLink}>Gear pedal</a>
+                        <a href="#" style={styles.megaMenuLink}>Foot control</a>
+                      </div>
+                      <div style={styles.megaMenuColumn}>
+                        <h4 style={styles.megaMenuHeading}>Chain Sprocket</h4>
+                        <a href="#" style={styles.megaMenuLink}>Brass chain sprocket</a>
+                        <a href="#" style={styles.megaMenuLink}>Regular chain sprocket</a>
+                        <a href="#" style={styles.megaMenuLink}>Chain maintenance</a>
+                        <br/>
+                        <h4 style={styles.megaMenuHeading}>Fork parts</h4>
+                        <a href="#" style={styles.megaMenuLink}>Fork oil seal</a>
+                        <a href="#" style={styles.megaMenuLink}>Shock absorber</a>
+                        <a href="#" style={styles.megaMenuLink}>Swingarm parts</a>
+                      </div>
+                      <div style={styles.megaMenuColumn}>
+                        <h4 style={styles.megaMenuHeading}>Electrical parts</h4>
+                        <a href="#" style={styles.megaMenuLink}>Stator coil</a>
+                        <a href="#" style={styles.megaMenuLink}>Regulator rectifier</a>
+                        <a href="#" style={styles.megaMenuLink}>Speedometer</a>
+                        <br/>
+                        <h4 style={styles.megaMenuHeading}>Lighting</h4>
+                        <a href="#" style={styles.megaMenuLink}>Headlamp</a>
+                        <a href="#" style={styles.megaMenuLink}>Indicators</a>
+                        <a href="#" style={styles.megaMenuLink}>Silencer</a>
+                      </div>
+                      <div style={styles.megaMenuColumn}>
+                        <h4 style={styles.megaMenuHeading}>Fuel system</h4>
+                        <a href="#" style={styles.megaMenuLink}>Fuel pump motor</a>
+                        <a href="#" style={styles.megaMenuLink}>Fuel pump assembly</a>
+                        <a href="#" style={styles.megaMenuLink}>Fuel cock</a>
+                        <br/>
+                        <h4 style={styles.megaMenuHeading}>Control switch</h4>
+                        <a href="#" style={styles.megaMenuLink}>Sticker kits</a>
+                      </div>
+                      <div style={styles.megaMenuColumn}>
+                        <h4 style={styles.megaMenuHeading}>Clutch parts</h4>
+                        <a href="#" style={styles.megaMenuLink}>Clutch cable</a>
+                        <a href="#" style={styles.megaMenuLink}>Clutch plate</a>
+                        <a href="#" style={styles.megaMenuLink}>Clutch assembly</a>
+                        <a href="#" style={styles.megaMenuLink}>Clutch shoe</a>
+                        <a href="#" style={styles.megaMenuLink}>CVT belt</a>
+                        <br/>
+                        <h4 style={styles.megaMenuHeading}>Lock Sets</h4>
+                        <a href="#" style={styles.megaMenuLink}>Ignition locks</a>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div 
+                style={styles.navItemWithDropdown}
+                onMouseEnter={() => setHoveredMenu('accessories')}
+              >
+                <button style={styles.bottomNavLinkDropdown}>Shop By Accessories <ChevronDown size={14} /></button>
+                {hoveredMenu === 'accessories' && (
+                  <div style={styles.megaMenuDropdown}>
+                    <div className="app-container" style={styles.megaMenuGrid}>
+                      <div style={styles.megaMenuColumn}>
+                        <h4 style={styles.megaMenuHeading}>Riding Gear</h4>
+                        <a href="#" style={styles.megaMenuLink}>Helmets</a>
+                        <a href="#" style={styles.megaMenuLink}>Riding Jackets</a>
+                        <a href="#" style={styles.megaMenuLink}>Riding Gloves</a>
+                        <a href="#" style={styles.megaMenuLink}>Riding Pants</a>
+                        <a href="#" style={styles.megaMenuLink}>Riding Boots</a>
+                      </div>
+                      <div style={styles.megaMenuColumn}>
+                        <h4 style={styles.megaMenuHeading}>Luggage</h4>
+                        <a href="#" style={styles.megaMenuLink}>Tank Bags</a>
+                        <a href="#" style={styles.megaMenuLink}>Saddlebags</a>
+                        <a href="#" style={styles.megaMenuLink}>Top Boxes</a>
+                        <a href="#" style={styles.megaMenuLink}>Tail Bags</a>
+                        <a href="#" style={styles.megaMenuLink}>Bungee Cords</a>
+                      </div>
+                      <div style={styles.megaMenuColumn}>
+                        <h4 style={styles.megaMenuHeading}>Protection</h4>
+                        <a href="#" style={styles.megaMenuLink}>Crash Guards</a>
+                        <a href="#" style={styles.megaMenuLink}>Frame Sliders</a>
+                        <a href="#" style={styles.megaMenuLink}>Handguards</a>
+                        <a href="#" style={styles.megaMenuLink}>Radiator Guards</a>
+                        <a href="#" style={styles.megaMenuLink}>Sump Guards</a>
+                      </div>
+                      <div style={styles.megaMenuColumn}>
+                        <h4 style={styles.megaMenuHeading}>Performance</h4>
+                        <a href="#" style={styles.megaMenuLink}>Exhaust Systems</a>
+                        <a href="#" style={styles.megaMenuLink}>Performance Air Filters</a>
+                        <a href="#" style={styles.megaMenuLink}>ECU Remaps</a>
+                        <a href="#" style={styles.megaMenuLink}>Quickshifters</a>
+                      </div>
+                      <div style={styles.megaMenuColumn}>
+                        <h4 style={styles.megaMenuHeading}>Styling & Care</h4>
+                        <a href="#" style={styles.megaMenuLink}>Decals & Stickers</a>
+                        <a href="#" style={styles.megaMenuLink}>Tail Tidies</a>
+                        <a href="#" style={styles.megaMenuLink}>Bar End Mirrors</a>
+                        <a href="#" style={styles.megaMenuLink}>Bike Covers</a>
+                        <a href="#" style={styles.megaMenuLink}>Cleaning Kits</a>
+                      </div>
+                      <div style={styles.megaMenuColumn}>
+                        <h4 style={styles.megaMenuHeading}>Electronics</h4>
+                        <a href="#" style={styles.megaMenuLink}>Mobile Mounts</a>
+                        <a href="#" style={styles.megaMenuLink}>USB Chargers</a>
+                        <a href="#" style={styles.megaMenuLink}>Auxiliary Lights</a>
+                        <a href="#" style={styles.megaMenuLink}>Action Cameras</a>
+                        <a href="#" style={styles.megaMenuLink}>Bluetooth Communicators</a>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <button style={styles.bottomNavLink}>Wholesale Price</button>
+              {showGarage && <button onClick={() => switchScreen('tracking')} style={styles.bottomNavLink}>Track Order</button>}
+              <button style={styles.bottomNavLink}>Faq</button>
+              <button onClick={() => switchScreen('contact')} style={styles.bottomNavLink}>Contact Us</button>
+              <button style={styles.bottomNavLink}>Blog</button>
+              <button onClick={() => switchScreen('wishlist')} style={styles.bottomNavLink}>Wishlist</button>
+              <button style={styles.bottomNavLink}>Return And Replacement</button>
+              <button style={styles.bottomNavLink}>Brand Directory</button>
+            </nav>
+          </div>
+        </div>
+      </header>
 
       {/* Main Content Area containing separate screen/tab components */}
-      <main className="app-container" style={{ padding: '6.5rem 1.5rem 4rem', minHeight: 'calc(100vh - 20rem)' }}>
+      <main className="app-container" style={{ padding: '12rem 1.5rem 4rem', minHeight: 'calc(100vh - 20rem)' }}>
         
         {/* SCREEN 1: Home / Landing */}
         {activeTab === 'home' && (
-          <section className="animate-fade-in-up" style={styles.sectionSpacing}>
-            {/* Hero Section */}
-            <div className="glass-panel" style={styles.heroSection}>
-              <div style={styles.heroContent}>
-                <div style={styles.badgeRow}>
-                  <Sparkles size={16} color="var(--primary)" />
-                  <span>{showGarage ? 'PREMIUM MOTORCYCLE CARE & SPARE PARTS' : '100% GENUINE MOTORCYCLE SPARE PARTS'}</span>
-                </div>
-                <h1 style={styles.heroTitle}>
-                  {showGarage ? (
-                    <>
-                      KEEP YOUR MACHINE <br />
-                      <span style={{ color: 'var(--primary)' }}>AT PEAK PERFORMANCE</span>
-                    </>
-                  ) : (
-                    <>
-                      PREMIUM GENUINE <br />
-                      <span style={{ color: 'var(--primary)' }}>MOTORCYCLE SPARES</span>
-                    </>
-                  )}
-                </h1>
-                <p style={styles.heroDescription}>
-                  {showGarage 
-                    ? 'Spark Craft is your absolute destination for high-end track tuning, daily general maintenance, and 100% genuine motorcycle spares. Book your expert slot in seconds.'
-                    : 'Spark Craft is your destination for premium quality, factory-approved motorcycle spares and accessories. Keep your ride authentic and running at maximum potential.'}
-                </p>
-                <div style={styles.heroButtonRow}>
-                  {showGarage ? (
-                    <button onClick={() => switchScreen('book')} className="btn-primary">
-                      <Calendar size={18} />
-                      Book Service Now
-                    </button>
-                  ) : (
-                    <button onClick={() => switchScreen('catalog')} className="btn-primary">
-                      <ShoppingBag size={18} />
-                      Explore Spares Catalog
-                    </button>
-                  )}
-                  <button onClick={showGarage ? () => switchScreen('catalog') : () => setIsCartOpen(true)} className="btn-secondary">
-                    {showGarage ? 'Browse Genuine Spares' : 'View Shopping Cart'}
-                    <ArrowRight size={18} />
-                  </button>
-                </div>
-              </div>
-              <div style={styles.heroImageWrapper}>
-                <img 
-                  src={heroImg} 
-                  alt="Premium custom motorcycle in garage" 
-                  style={styles.heroImage}
-                />
+          <div className="animate-fade-in-up" style={{ display: 'flex', flexDirection: 'column', gap: '4rem', width: '100vw', marginLeft: 'calc(-50vw + 50%)', overflowX: 'hidden' }}>
+            
+            {/* 1. Full Width Hero Banner */}
+            <div style={styles.sparifyHeroBanner}>
+              <div style={styles.sparifyHeroContent}>
+                <h1 style={styles.sparifyHeroTitle}>UPGRADE YOUR RIDE</h1>
+                <p style={styles.sparifyHeroSub}>Premium Spares & Performance Parts for True Enthusiasts.</p>
+                <button onClick={() => switchScreen('catalog')} style={styles.sparifyHeroBtn}>Shop Now</button>
               </div>
             </div>
 
-            {/* Quick Metrics */}
-            <div style={styles.metricGrid}>
-              <div className="glass-panel" style={styles.metricCard}>
-                <TrendingUp size={24} color="var(--primary)" />
-                <h3 style={styles.metricVal}>{showGarage ? '1,200+' : '4,500+'}</h3>
-                <p style={styles.metricLabel}>{showGarage ? 'Machines Tuned' : 'Orders Shipped'}</p>
-              </div>
-              <div className="glass-panel" style={styles.metricCard}>
-                <ShieldCheck size={24} color="var(--success)" />
-                <h3 style={styles.metricVal}>100%</h3>
-                <p style={styles.metricLabel}>Genuine Parts Guaranteed</p>
-              </div>
-              <div className="glass-panel" style={styles.metricCard}>
-                <Clock size={24} color="var(--info)" />
-                <h3 style={styles.metricVal}>{showGarage ? 'Same-Day' : 'Fast-Track'}</h3>
-                <p style={styles.metricLabel}>{showGarage ? 'Express Fluids & Inspection' : 'Delivery & Secure Dispatch'}</p>
+            {/* 2. Shop By Category (Circular) */}
+            <div className="app-container" style={{ textAlign: 'center', width: '100%', maxWidth: '1400px', margin: '0 auto' }}>
+              <h2 style={styles.sparifySectionTitle}>SHOP BY CATEGORY</h2>
+              <div style={styles.sparifyCategoryGrid}>
+                {['Helmets', 'Exhausts', 'Filters', 'Brakes', 'Lubricants', 'Luggage'].map((cat, idx) => (
+                  <div key={idx} style={styles.sparifyCategoryItem} onClick={() => switchScreen('catalog')}>
+                    <div style={styles.sparifyCategoryCircle}>
+                      <span style={{fontSize: '2rem', color: '#aaa', fontWeight: 'bold'}}>{cat[0]}</span>
+                    </div>
+                    <span style={styles.sparifyCategoryLabel}>{cat}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* Fast tracking shortcut (Only shown if Garage is Active) */}
-            {showGarage && (
-              <div className="glass-panel" style={styles.quickTrackPanel}>
-                <div>
-                  <h3 style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>Track Current Service Status</h3>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Have a service code (e.g. SC-77301)? Look up diagnostics status instantly.</p>
-                </div>
-                <form onSubmit={handleTrackSubmit} style={styles.quickTrackForm}>
-                  <input 
-                    type="text" 
-                    placeholder="Enter Code (e.g. SC-77301)"
-                    value={searchTrackingCode}
-                    onChange={(e) => setSearchTrackingCode(e.target.value)}
-                    style={styles.quickTrackInput}
-                  />
-                  <button type="submit" className="btn-primary" style={{ height: '100%' }}>
-                    Track
-                  </button>
-                </form>
+            {/* 3. Promotional Banner Strip */}
+            <div className="app-container" style={{ width: '100%', maxWidth: '1400px', margin: '0 auto' }}>
+               <div style={styles.sparifyPromoStrip}>
+                 <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>FREE SHIPPING ON ORDERS OVER $99!</h3>
+                 <p style={{ color: '#aaa' }}>Use code <strong style={{color: '#fff'}}>FREERIDE</strong> at checkout. Valid until end of month.</p>
+               </div>
+            </div>
+
+            {/* 4. Best Sellers / Featured Products Grid */}
+            <div className="app-container" style={{ textAlign: 'center', width: '100%', maxWidth: '1400px', margin: '0 auto' }}>
+              <h2 style={styles.sparifySectionTitle}>BEST SELLERS</h2>
+              <div style={styles.sparifyProductGrid}>
+                {spares.slice(0, 4).map(part => (
+                  <div key={part.id} style={styles.sparifyProductCard}>
+                    <div style={styles.sparifyProductImagePlaceholder}>
+                      <ShoppingBag size={48} color="#e0e0e0" />
+                    </div>
+                    <div style={styles.sparifyProductInfo}>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>{part.category}</span>
+                      <h4 style={styles.sparifyProductCardTitle}>{part.name}</h4>
+                      <StarRating rating={part.rating} />
+                      <div style={styles.sparifyProductCardFooter}>
+                        <span style={{ fontWeight: '900', fontSize: '1.2rem', color: '#111' }}>${part.price.toFixed(2)}</span>
+                        <button onClick={() => { addToCart(part); showToast(`Added ${part.name}`, 'success'); }} style={styles.sparifyAddToCartBtn}>+ Add</button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            )}
-          </section>
+            </div>
+
+            {/* 5. Shop By Brands */}
+            <div className="app-container" style={{ textAlign: 'center', marginBottom: '4rem', width: '100%', maxWidth: '1400px', margin: '0 auto' }}>
+              <h2 style={styles.sparifySectionTitle}>TOP BRANDS</h2>
+              <div style={styles.sparifyBrandsGrid}>
+                {['BREMBO', 'K&N', 'MOTUL', 'NGK', 'AKRAPOVIC', 'MICHELIN'].map((brand, idx) => (
+                  <div key={idx} style={styles.sparifyBrandLogo}>
+                    {brand}
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+          </div>
         )}
 
         {/* SCREEN 2: Services */}
@@ -738,7 +909,7 @@ function App() {
                     style={styles.finderSelect}
                   >
                     <option value="">-- All Brands --</option>
-                    {Object.keys(BIKE_BRANDS).map(brand => (
+                    {Object.keys(bikeBrands).map(brand => (
                       <option key={brand} value={brand}>{brand}</option>
                     ))}
                   </select>
@@ -754,7 +925,7 @@ function App() {
                     style={styles.finderSelect}
                   >
                     <option value="">-- All Bikes --</option>
-                    {selectedBrand && BIKE_BRANDS[selectedBrand].map(bike => (
+                    {selectedBrand && bikeBrands[selectedBrand].map(bike => (
                       <option key={bike} value={bike}>{bike}</option>
                     ))}
                   </select>
@@ -1462,6 +1633,379 @@ function App() {
 
 // Complete inline JavaScript styles for layout customization
 const styles = {
+  headerWrapper: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 100,
+    background: '#fff',
+    borderBottom: '1px solid var(--border)',
+    boxShadow: '0 4px 6px rgba(0,0,0,0.05)'
+  },
+  topBar: {
+    background: '#000',
+    color: '#fff',
+    fontSize: '0.7rem',
+    fontWeight: 700,
+    letterSpacing: '0.05em'
+  },
+  topBarContainer: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    padding: '0.5rem 1.5rem',
+    alignItems: 'center'
+  },
+  topBarText: {
+    opacity: 0.9,
+    textTransform: 'uppercase'
+  },
+  topBarTextCenter: {
+    opacity: 1,
+    color: '#10B981', // green tint for the checkmark effect
+    textTransform: 'uppercase'
+  },
+  middleBar: {
+    background: '#EAEAEA',
+    padding: '1rem 0',
+    borderBottom: '1px solid rgba(0,0,0,0.05)'
+  },
+  middleBarContainer: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: '2rem'
+  },
+  sparifyLogoWrapper: {
+    display: 'flex',
+    alignItems: 'center',
+    background: '#f87171', // Orange/Red color of Sparify
+    padding: '0.2rem 0.5rem',
+    borderRadius: '4px',
+    color: '#000',
+    border: '2px solid #000'
+  },
+  sparifyLogoTextMain: {
+    fontFamily: 'Impact, sans-serif',
+    fontSize: '1.4rem',
+    textTransform: 'lowercase',
+    color: '#fff',
+    letterSpacing: '1px',
+    WebkitTextStroke: '1px #000'
+  },
+  mainSearchContainer: {
+    flex: 1,
+    display: 'flex',
+    alignItems: 'center',
+    background: '#fff',
+    borderRadius: '50px',
+    overflow: 'hidden',
+    border: '1px solid transparent',
+    transition: 'border 0.3s ease',
+    maxWidth: '600px',
+    margin: '0 auto'
+  },
+  mainSearchInput: {
+    flex: 1,
+    border: 'none',
+    background: 'transparent',
+    padding: '0.75rem 1rem',
+    fontSize: '0.9rem',
+    outline: 'none',
+    color: '#000'
+  },
+  middleBarActions: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1.5rem'
+  },
+  iconBtn: {
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '0.25rem'
+  },
+  iconBtnCart: {
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '0.25rem',
+    position: 'relative'
+  },
+  cartCountSparify: {
+    position: 'absolute',
+    top: '-4px',
+    left: '12px',
+    background: '#000',
+    color: '#fff',
+    fontSize: '0.65rem',
+    fontWeight: 'bold',
+    width: '16px',
+    height: '16px',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  bottomBar: {
+    background: '#fff',
+    position: 'relative'
+  },
+  bottomBarContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    padding: '0 1.5rem'
+  },
+  bottomNavLinks: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1.5rem',
+    flexWrap: 'wrap',
+    justifyContent: 'center'
+  },
+  bottomNavLink: {
+    background: 'none',
+    border: 'none',
+    color: '#000',
+    fontSize: '0.85rem',
+    fontWeight: 500,
+    cursor: 'pointer',
+    padding: '1rem 0',
+    transition: 'color 0.2s',
+    whiteSpace: 'nowrap'
+  },
+  bottomNavLinkDropdown: {
+    background: 'none',
+    border: 'none',
+    color: '#000',
+    fontSize: '0.85rem',
+    fontWeight: 500,
+    cursor: 'pointer',
+    padding: '1rem 0',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.25rem',
+    whiteSpace: 'nowrap'
+  },
+  navItemWithDropdown: {
+    position: 'static'
+  },
+  megaMenuDropdown: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    width: '100%',
+    background: '#fff',
+    boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+    borderTop: '1px solid rgba(0,0,0,0.05)',
+    zIndex: 200,
+    padding: '2.5rem 0',
+    borderBottom: '4px solid #f87171'
+  },
+  megaMenuGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(6, 1fr)',
+    gap: '2rem',
+    textAlign: 'left'
+  },
+  megaMenuColumn: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.75rem'
+  },
+  megaMenuHeading: {
+    fontSize: '0.9rem',
+    fontWeight: 800,
+    color: '#000',
+    marginBottom: '0.5rem',
+    textTransform: 'uppercase'
+  },
+  megaMenuLink: {
+    color: '#666',
+    fontSize: '0.85rem',
+    textDecoration: 'none',
+    transition: 'color 0.2s'
+  },
+  sparifyHeroBanner: {
+    width: '100%',
+    height: '650px',
+    background: '#111', 
+    backgroundImage: 'url("https://images.unsplash.com/photo-1558981806-ec527fa84c39?q=80&w=2070&auto=format&fit=crop")',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#fff',
+    position: 'relative',
+    marginTop: '-4rem'
+  },
+  sparifyHeroContent: {
+    textAlign: 'center',
+    background: 'rgba(0,0,0,0.6)',
+    padding: '4rem',
+    borderRadius: '16px',
+    backdropFilter: 'blur(8px)',
+    border: '1px solid rgba(255,255,255,0.1)',
+    maxWidth: '800px'
+  },
+  sparifyHeroTitle: {
+    fontSize: '4.5rem',
+    fontWeight: 900,
+    marginBottom: '1rem',
+    color: '#fff',
+    letterSpacing: '2px',
+    lineHeight: 1.1
+  },
+  sparifyHeroSub: {
+    fontSize: '1.3rem',
+    marginBottom: '2.5rem',
+    opacity: 0.9
+  },
+  sparifyHeroBtn: {
+    background: '#f87171',
+    color: '#fff',
+    border: 'none',
+    padding: '1.2rem 3rem',
+    fontSize: '1.1rem',
+    fontWeight: 800,
+    borderRadius: '50px',
+    cursor: 'pointer',
+    textTransform: 'uppercase',
+    letterSpacing: '1px',
+    transition: 'all 0.3s',
+    boxShadow: '0 10px 20px rgba(248, 113, 113, 0.3)'
+  },
+  sparifySectionTitle: {
+    fontSize: '2rem',
+    fontWeight: 900,
+    marginBottom: '3rem',
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    letterSpacing: '1.5px',
+    color: '#111'
+  },
+  sparifyCategoryGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(6, 1fr)',
+    gap: '2.5rem',
+    padding: '1rem 0'
+  },
+  sparifyCategoryItem: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '1.2rem',
+    cursor: 'pointer'
+  },
+  sparifyCategoryCircle: {
+    width: '160px',
+    height: '160px',
+    borderRadius: '50%',
+    background: '#f8f8f8',
+    border: '1px solid #eaeaea',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'all 0.3s',
+    boxShadow: '0 10px 30px rgba(0,0,0,0.04)'
+  },
+  sparifyCategoryLabel: {
+    fontWeight: 800,
+    fontSize: '1.05rem',
+    color: '#222',
+    textTransform: 'uppercase'
+  },
+  sparifyPromoStrip: {
+    background: 'linear-gradient(135deg, #111, #222)',
+    color: '#fff',
+    padding: '3rem 2rem',
+    borderRadius: '16px',
+    textAlign: 'center',
+    boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+    border: '1px solid rgba(255,255,255,0.1)'
+  },
+  sparifyProductGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(4, 1fr)',
+    gap: '2.5rem'
+  },
+  sparifyProductCard: {
+    background: '#fff',
+    border: '1px solid #eaeaea',
+    borderRadius: '16px',
+    overflow: 'hidden',
+    transition: 'transform 0.3s, box-shadow 0.3s',
+    display: 'flex',
+    flexDirection: 'column',
+    textAlign: 'left'
+  },
+  sparifyProductImagePlaceholder: {
+    height: '240px',
+    background: '#f9f9f9',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderBottom: '1px solid #f0f0f0'
+  },
+  sparifyProductInfo: {
+    padding: '1.5rem',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.75rem',
+    flex: 1
+  },
+  sparifyProductCardTitle: {
+    fontSize: '1.1rem',
+    fontWeight: 800,
+    lineHeight: 1.4,
+    color: '#111',
+    marginBottom: '0.25rem'
+  },
+  sparifyProductCardFooter: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 'auto',
+    paddingTop: '1.25rem',
+    borderTop: '1px solid #f5f5f5'
+  },
+  sparifyAddToCartBtn: {
+    background: '#000',
+    color: '#fff',
+    border: 'none',
+    padding: '0.6rem 1.25rem',
+    borderRadius: '8px',
+    fontWeight: 700,
+    cursor: 'pointer',
+    transition: 'background 0.2s'
+  },
+  sparifyBrandsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(6, 1fr)',
+    gap: '1.5rem'
+  },
+  sparifyBrandLogo: {
+    height: '90px',
+    background: '#fff',
+    border: '1px solid #eaeaea',
+    borderRadius: '12px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontWeight: 900,
+    fontSize: '1.1rem',
+    color: '#999',
+    letterSpacing: '1px',
+    transition: 'all 0.3s',
+    cursor: 'pointer'
+  },
   nav: {
     position: 'fixed',
     top: 0,
