@@ -14,16 +14,41 @@ import {
   Package, 
   Layers, 
   Inbox,
-  AlertCircle
+  AlertCircle,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react';
 import './index.css';
 
 // INITIAL BIKE DATA DEFINITION
+const INITIAL_BRAND_LOGOS = {
+  'ROYAL ENFIELD': '',
+  'TVS': '',
+  'BMW': '',
+  'KTM': '',
+  'YAMAHA': '',
+  'HUSQVARNA': '',
+  'BAJAJ': '',
+  'KAWASAKI': '',
+  'BENELLI': '',
+  'PIAGGIO': '',
+  'HERO': '',
+  'DUCATI': '',
+  'HONDA': '',
+  'OLA': '',
+  'Harley davidson': '',
+  'Suzuki': '',
+  'Triumph': '',
+  'Ather': '',
+  'Jawa': ''
+};
+
 const INITIAL_BIKE_BRANDS = {
   'ROYAL ENFIELD': [
     'Classic 350', 'Classic 500', 'Meteor 350', 'Himalayan 450', 
     'Guerrilla 450', 'Super Meteor 650', 'Himalayan 411', 'Scram 411', 
-    'Interceptor 650', 'Continental GT 650', 'Hunter 350', 'Thunderbird 350'
+    'Interceptor 650', 'Continental GT 650', 'Hunter 350', 'Thunderbird 350',
+    'Thunderbird 500', 'Classic reborn 350'
   ],
   'TVS': [
     'Apachr RTX 300', 'Apache RR 310', 'Apache RTR 310', 'Apache RTR 200', 'Apache 160'
@@ -37,10 +62,49 @@ const INITIAL_BIKE_BRANDS = {
   ],
   'YAMAHA': [
     'XSR 155', 'Aerox', 'R15 V1', 'R15 V2', 'R15 V3', 'R15 V4', 
-    'MT 15', 'MT 09', 'FZ 16', 'FZ-X', 'FZ 250', 'FZ V2'
+    'MT 15', 'MT 09', 'FZ 16', 'FZ-X', 'FZ 250', 'FZ V2',
+    'YZF-R1M', 'YZF-R1', 'YZF-R3'
   ],
   'HUSQVARNA': [
     'Svartpilen 401', 'Vitpilen 401'
+  ],
+  'BAJAJ': [
+    'Pulsar NS 200', 'Pulsar RS 200', 'Pulsar NS 160', 'Dominar 400', 
+    'Dominar 250', 'Pulsar 220F', 'Pulsar NS 400', 'Pulsar N160'
+  ],
+  'KAWASAKI': [
+    'Ninja 650', 'Ninja 400', 'Ninja ZX-14R', 'Ninja ZX-10R', 'Ninja ZX-6R', 
+    'Ninja H2R', 'Vulcan S', 'Vulcan 900 Classic', 'Versys 650', 'Versys 1000', 
+    'Z400', 'Z650', 'Z800', 'Z900', 'Z1000'
+  ],
+  'BENELLI': [
+    'TNT 300', 'TNT 600i', 'TNT 899', 'TRK 502', 'TRK 502X', 'Imperiale 400'
+  ],
+  'PIAGGIO': [
+    'Aprilia SR 125', 'Aprilia SR 150', 'Aprilia SR 160', 'Aprilia SXR', 
+    'Aprilia storm 125', 'Aprilia Storm 150', 'Aprilia Storm 160', 
+    'Vespa SXL 125', 'Vespa VXL 125', 'Aprilia RS 457'
+  ],
+  'HERO': [
+    'Xpulse 200', 'Xpulse 210'
+  ],
+  'DUCATI': [
+    'Panigale', 'Scrambler 800', 'Monster', 'Multistrada', 'Diavel 1260'
+  ],
+  'HONDA': [
+    'H\'ness 350', 'CBR 150', 'CBR 250', 'CBR 650', 'CB 350RS', 'CB 300', 'CBR 1000 RR'
+  ],
+  'OLA': [],
+  'Harley davidson': [],
+  'Suzuki': [
+    'V strom SX 250', 'Gixxer SF 250', 'Burgman'
+  ],
+  'Triumph': [
+    'Speed 400', 'Scrambler 400X'
+  ],
+  'Ather': [],
+  'Jawa': [
+    'JAWA 42', 'Jawa bobber'
   ]
 };
 
@@ -142,7 +206,17 @@ function AdminPortal() {
   // Bike Brands state
   const [bikeBrands, setBikeBrands] = useState(() => {
     const saved = localStorage.getItem('spark_bike_brands');
-    return saved ? JSON.parse(saved) : INITIAL_BIKE_BRANDS;
+    const parsed = saved ? JSON.parse(saved) : {};
+    const merged = { ...INITIAL_BIKE_BRANDS };
+    for (const [brand, models] of Object.entries(parsed)) {
+      if (merged[brand]) {
+        merged[brand] = [...new Set([...merged[brand], ...models])];
+      } else {
+        merged[brand] = models;
+      }
+    }
+    localStorage.setItem('spark_bike_brands', JSON.stringify(merged));
+    return merged;
   });
 
   useEffect(() => {
@@ -150,9 +224,38 @@ function AdminPortal() {
   }, [bikeBrands]);
 
   // Brand Management State
+  const [brandLogos, setBrandLogos] = useState(() => {
+    const saved = localStorage.getItem('spark_brand_logos');
+    const parsed = saved ? JSON.parse(saved) : {};
+    const merged = { ...INITIAL_BRAND_LOGOS, ...parsed };
+    localStorage.setItem('spark_brand_logos', JSON.stringify(merged));
+    return merged;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('spark_brand_logos', JSON.stringify(brandLogos));
+  }, [brandLogos]);
+
+  const [brandOrder, setBrandOrder] = useState(() => {
+    const saved = localStorage.getItem('spark_brand_order');
+    if (saved) return JSON.parse(saved);
+    const defaultOrder = Object.keys(INITIAL_BIKE_BRANDS);
+    localStorage.setItem('spark_brand_order', JSON.stringify(defaultOrder));
+    return defaultOrder;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('spark_brand_order', JSON.stringify(brandOrder));
+  }, [brandOrder]);
+
   const [newBrandName, setNewBrandName] = useState('');
   const [newBrandModel, setNewBrandModel] = useState('');
   const [newModelInputs, setNewModelInputs] = useState({});
+
+  // Add Product State
+  const [newProduct, setNewProduct] = useState({
+    name: '', category: '', price: '', stock: '', desc: '', images: ''
+  });
 
   const handleAddBrand = (e) => {
     e.preventDefault();
@@ -166,6 +269,10 @@ function AdminPortal() {
       ...prev,
       [brandName]: [newBrandModel]
     }));
+    setBrandOrder(prev => {
+      if (prev.includes(brandName)) return prev;
+      return [...prev, brandName];
+    });
     setNewBrandName('');
     setNewBrandModel('');
   };
@@ -175,7 +282,42 @@ function AdminPortal() {
       const newBrands = { ...bikeBrands };
       delete newBrands[brand];
       setBikeBrands(newBrands);
+      setBrandOrder(prev => prev.filter(b => b !== brand));
     }
+  };
+
+  const handleMoveBrandUp = (index) => {
+    if (index === 0) return;
+    const newOrder = [...brandOrder];
+    [newOrder[index - 1], newOrder[index]] = [newOrder[index], newOrder[index - 1]];
+    setBrandOrder(newOrder);
+  };
+
+  const handleMoveBrandDown = (index) => {
+    if (index === brandOrder.length - 1) return;
+    const newOrder = [...brandOrder];
+    [newOrder[index + 1], newOrder[index]] = [newOrder[index], newOrder[index + 1]];
+    setBrandOrder(newOrder);
+  };
+
+  const handleAddProduct = (e) => {
+    e.preventDefault();
+    if (!newProduct.name || !newProduct.price) return;
+    const newId = Date.now();
+    const imageList = newProduct.images ? newProduct.images.split(',').map(url => url.trim()).filter(url => url !== '') : [];
+    const product = {
+      id: newId,
+      name: newProduct.name,
+      category: newProduct.category || 'General',
+      price: parseFloat(newProduct.price),
+      stock: parseInt(newProduct.stock) || 0,
+      desc: newProduct.desc || '',
+      images: imageList,
+      rating: 5.0,
+      compatibility: [] // Can be edited later
+    };
+    setSpares(prev => [product, ...prev]);
+    setNewProduct({ name: '', category: '', price: '', stock: '', desc: '', images: '' });
   };
 
   const handleAddModel = (brand) => {
@@ -196,6 +338,13 @@ function AdminPortal() {
         [brand]: prev[brand].filter(m => m !== model)
       }));
     }
+  };
+
+  const handleUpdateLogo = (brand, url) => {
+    setBrandLogos(prev => ({
+      ...prev,
+      [brand]: url
+    }));
   };
 
   // Admin Authentication State
@@ -450,6 +599,42 @@ function AdminPortal() {
                 <div className="glass-panel" style={{ padding: '2rem' }}>
                   <h3 style={{ fontSize: '1.25rem', marginBottom: '1.25rem', textAlign: 'left' }}>Store Catalog Inventory</h3>
                   
+                  {/* Add Product Form */}
+                  <div style={{ marginBottom: '2rem', background: 'rgba(17,24,39,0.02)', padding: '1.5rem', borderRadius: '8px' }}>
+                    <h4 style={{ fontSize: '1rem', marginBottom: '1rem', fontWeight: 'bold' }}>Add New Product</h4>
+                    <form onSubmit={handleAddProduct} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      <div style={{ display: 'flex', gap: '1rem' }}>
+                        <div style={{ flex: 2, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                          <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Name</label>
+                          <input type="text" required value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} style={{ padding: '0.5rem', border: '1px solid #eee', borderRadius: '4px' }} />
+                        </div>
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                          <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Category</label>
+                          <input type="text" required value={newProduct.category} onChange={(e) => setNewProduct({...newProduct, category: e.target.value})} style={{ padding: '0.5rem', border: '1px solid #eee', borderRadius: '4px' }} />
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: '1rem' }}>
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                          <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Price ($)</label>
+                          <input type="number" step="0.01" required value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} style={{ padding: '0.5rem', border: '1px solid #eee', borderRadius: '4px' }} />
+                        </div>
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                          <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Stock Quantity</label>
+                          <input type="number" required value={newProduct.stock} onChange={(e) => setNewProduct({...newProduct, stock: e.target.value})} style={{ padding: '0.5rem', border: '1px solid #eee', borderRadius: '4px' }} />
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                        <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Description</label>
+                        <textarea value={newProduct.desc} onChange={(e) => setNewProduct({...newProduct, desc: e.target.value})} rows="2" style={{ padding: '0.5rem', border: '1px solid #eee', borderRadius: '4px' }}></textarea>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                        <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Images (Comma-separated URLs)</label>
+                        <input type="text" placeholder="https://image1.jpg, https://image2.jpg" value={newProduct.images} onChange={(e) => setNewProduct({...newProduct, images: e.target.value})} style={{ padding: '0.5rem', border: '1px solid #eee', borderRadius: '4px' }} />
+                      </div>
+                      <button type="submit" className="btn-primary" style={{ alignSelf: 'flex-start', padding: '0.6rem 1.5rem', marginTop: '0.5rem' }}>Add Product</button>
+                    </form>
+                  </div>
+                  
                   <div style={styles.adminTableContainer}>
                     <table style={styles.adminTable}>
                       <thead>
@@ -462,7 +647,7 @@ function AdminPortal() {
                         </tr>
                       </thead>
                       <tbody>
-                        {spares.map(part => (
+                        {(spares || []).map(part => (
                           <tr key={part.id} style={styles.tr}>
                             <td style={{ ...styles.td, fontWeight: 'bold' }}>{part.name}</td>
                             <td style={styles.td}>{part.category}</td>
@@ -515,7 +700,7 @@ function AdminPortal() {
                           value={newPartData.category}
                           onChange={(e) => setNewPartData({...newPartData, category: e.target.value})}
                         >
-                          {categories.map(cat => (
+                          {(categories || []).map(cat => (
                             <option key={cat}>{cat}</option>
                           ))}
                         </select>
@@ -554,7 +739,7 @@ function AdminPortal() {
                           <div key={brand} style={{ marginBottom: '0.75rem' }}>
                             <p style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--primary)', marginBottom: '0.25rem' }}>{brand}</p>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                              {bikes.map(bike => (
+                              {(bikes || []).map(bike => (
                                 <label key={bike} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', cursor: 'pointer' }}>
                                   <input 
                                     type="checkbox"
@@ -614,15 +799,38 @@ function AdminPortal() {
 
                   {/* Existing Brands List */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                    {Object.entries(bikeBrands).map(([brand, models]) => (
+                    {(brandOrder || []).filter(b => bikeBrands && bikeBrands[b]).map((brand, index) => {
+                      const models = bikeBrands[brand] || [];
+                      return (
                       <div key={brand} style={{ padding: '1rem', border: '1px solid #eee', borderRadius: '8px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                          <h4 style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{brand}</h4>
-                          <button onClick={() => handleDeleteBrand(brand)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Trash2 size={14} /> Delete Brand</button>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            {brandLogos[brand] ? (
+                              <img src={brandLogos[brand]} alt={brand} style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
+                            ) : (
+                              <div style={{ width: '40px', height: '40px', background: '#eee', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: '#999' }}>No Logo</div>
+                            )}
+                            <h4 style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{brand}</h4>
+                          </div>
+                          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                            <button onClick={() => handleMoveBrandUp(index)} disabled={index === 0} style={{ background: 'none', border: 'none', cursor: index === 0 ? 'not-allowed' : 'pointer', opacity: index === 0 ? 0.3 : 1 }} title="Move Up"><ChevronUp size={16} /></button>
+                            <button onClick={() => handleMoveBrandDown(index)} disabled={index === brandOrder.length - 1} style={{ background: 'none', border: 'none', cursor: index === brandOrder.length - 1 ? 'not-allowed' : 'pointer', opacity: index === brandOrder.length - 1 ? 0.3 : 1 }} title="Move Down"><ChevronDown size={16} /></button>
+                            <button onClick={() => handleDeleteBrand(brand)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.25rem', marginLeft: '1rem' }}><Trash2 size={14} /> Delete</button>
+                          </div>
+                        </div>
+                        
+                        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', alignItems: 'center' }}>
+                          <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Logo URL:</label>
+                          <input 
+                            type="text" placeholder="https://..." 
+                            value={brandLogos[brand] || ''} 
+                            onChange={(e) => handleUpdateLogo(brand, e.target.value)}
+                            style={{ flex: 1, padding: '0.4rem', border: '1px solid #eee', borderRadius: '4px', fontSize: '0.8rem' }}
+                          />
                         </div>
                         
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
-                          {models.map(model => (
+                          {(models || []).map(model => (
                             <span key={model} style={{ background: '#f5f5f5', padding: '0.25rem 0.75rem', borderRadius: '100px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                               {model} 
                               <button onClick={() => handleDeleteModel(brand, model)} style={{ background: 'none', border: 'none', color: '#999', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><X size={12} /></button>
@@ -641,7 +849,8 @@ function AdminPortal() {
                           <button onClick={() => handleAddModel(brand)} style={{ background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: '4px', padding: '0 0.75rem', cursor: 'pointer' }}><Plus size={14} /></button>
                         </div>
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -655,7 +864,7 @@ function AdminPortal() {
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'left' }}>No bookings reserved.</p>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                      {bookings.map(b => (
+                      {(bookings || []).map(b => (
                         <div key={b.code} style={styles.adminBookingCard}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                             <div>
@@ -693,7 +902,7 @@ function AdminPortal() {
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'left' }}>No emails or enquiries in inbox.</p>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                      {enquiries.map(enq => (
+                      {(enquiries || []).map(enq => (
                         <div key={enq.id} style={{
                           ...styles.adminEnquiryCard,
                           borderLeftColor: enq.resolved ? 'var(--success)' : 'var(--warning)'

@@ -37,7 +37,8 @@ const INITIAL_BIKE_BRANDS = {
   'ROYAL ENFIELD': [
     'Classic 350', 'Classic 500', 'Meteor 350', 'Himalayan 450', 
     'Guerrilla 450', 'Super Meteor 650', 'Himalayan 411', 'Scram 411', 
-    'Interceptor 650', 'Continental GT 650', 'Hunter 350', 'Thunderbird 350'
+    'Interceptor 650', 'Continental GT 650', 'Hunter 350', 'Thunderbird 350',
+    'Thunderbird 500', 'Classic reborn 350'
   ],
   'TVS': [
     'Apachr RTX 300', 'Apache RR 310', 'Apache RTR 310', 'Apache RTR 200', 'Apache 160'
@@ -51,11 +52,72 @@ const INITIAL_BIKE_BRANDS = {
   ],
   'YAMAHA': [
     'XSR 155', 'Aerox', 'R15 V1', 'R15 V2', 'R15 V3', 'R15 V4', 
-    'MT 15', 'MT 09', 'FZ 16', 'FZ-X', 'FZ 250', 'FZ V2'
+    'MT 15', 'MT 09', 'FZ 16', 'FZ-X', 'FZ 250', 'FZ V2',
+    'YZF-R1M', 'YZF-R1', 'YZF-R3'
   ],
   'HUSQVARNA': [
     'Svartpilen 401', 'Vitpilen 401'
+  ],
+  'BAJAJ': [
+    'Pulsar NS 200', 'Pulsar RS 200', 'Pulsar NS 160', 'Dominar 400', 
+    'Dominar 250', 'Pulsar 220F', 'Pulsar NS 400', 'Pulsar N160'
+  ],
+  'KAWASAKI': [
+    'Ninja 650', 'Ninja 400', 'Ninja ZX-14R', 'Ninja ZX-10R', 'Ninja ZX-6R', 
+    'Ninja H2R', 'Vulcan S', 'Vulcan 900 Classic', 'Versys 650', 'Versys 1000', 
+    'Z400', 'Z650', 'Z800', 'Z900', 'Z1000'
+  ],
+  'BENELLI': [
+    'TNT 300', 'TNT 600i', 'TNT 899', 'TRK 502', 'TRK 502X', 'Imperiale 400'
+  ],
+  'PIAGGIO': [
+    'Aprilia SR 125', 'Aprilia SR 150', 'Aprilia SR 160', 'Aprilia SXR', 
+    'Aprilia storm 125', 'Aprilia Storm 150', 'Aprilia Storm 160', 
+    'Vespa SXL 125', 'Vespa VXL 125', 'Aprilia RS 457'
+  ],
+  'HERO': [
+    'Xpulse 200', 'Xpulse 210'
+  ],
+  'DUCATI': [
+    'Panigale', 'Scrambler 800', 'Monster', 'Multistrada', 'Diavel 1260'
+  ],
+  'HONDA': [
+    'H\'ness 350', 'CBR 150', 'CBR 250', 'CBR 650', 'CB 350RS', 'CB 300', 'CBR 1000 RR'
+  ],
+  'OLA': [],
+  'Harley davidson': [],
+  'Suzuki': [
+    'V strom SX 250', 'Gixxer SF 250', 'Burgman'
+  ],
+  'Triumph': [
+    'Speed 400', 'Scrambler 400X'
+  ],
+  'Ather': [],
+  'Jawa': [
+    'JAWA 42', 'Jawa bobber'
   ]
+};
+
+const INITIAL_BRAND_LOGOS = {
+  'ROYAL ENFIELD': '',
+  'TVS': '',
+  'BMW': '',
+  'KTM': '',
+  'YAMAHA': '',
+  'HUSQVARNA': '',
+  'BAJAJ': '',
+  'KAWASAKI': '',
+  'BENELLI': '',
+  'PIAGGIO': '',
+  'HERO': '',
+  'DUCATI': '',
+  'HONDA': '',
+  'OLA': '',
+  'Harley davidson': '',
+  'Suzuki': '',
+  'Triumph': '',
+  'Ather': '',
+  'Jawa': ''
 };
 
 // Mock spare parts catalog data
@@ -186,6 +248,7 @@ function App() {
   // Navigation active tab (highlighter)
   const [activeTab, setActiveTab] = useState('home');
   const [hoveredMenu, setHoveredMenu] = useState(null);
+  const [activeMegaMenuBrand, setActiveMegaMenuBrand] = useState(Object.keys(INITIAL_BIKE_BRANDS)[0]);
 
   // SHOW_GARAGE_SERVICES state (controlled by admin dashboard!)
   const [showGarage, setShowGarage] = useState(() => {
@@ -196,7 +259,36 @@ function App() {
   // Pull bike brands from local storage
   const [bikeBrands, setBikeBrands] = useState(() => {
     const saved = localStorage.getItem('spark_bike_brands');
-    return saved ? JSON.parse(saved) : INITIAL_BIKE_BRANDS;
+    const parsed = saved ? JSON.parse(saved) : {};
+    // Merge existing local storage with the massive new dictionary
+    // We do this to ensure the user gets all the new screenshot brands without losing their own additions
+    const merged = { ...INITIAL_BIKE_BRANDS };
+    for (const [brand, models] of Object.entries(parsed)) {
+      if (merged[brand]) {
+        // combine arrays and remove duplicates
+        merged[brand] = [...new Set([...merged[brand], ...models])];
+      } else {
+        merged[brand] = models;
+      }
+    }
+    localStorage.setItem('spark_bike_brands', JSON.stringify(merged));
+    return merged;
+  });
+
+  const [brandLogos, setBrandLogos] = useState(() => {
+    const saved = localStorage.getItem('spark_brand_logos');
+    const parsed = saved ? JSON.parse(saved) : {};
+    const merged = { ...INITIAL_BRAND_LOGOS, ...parsed };
+    localStorage.setItem('spark_brand_logos', JSON.stringify(merged));
+    return merged;
+  });
+
+  const [brandOrder, setBrandOrder] = useState(() => {
+    const saved = localStorage.getItem('spark_brand_order');
+    if (saved) return JSON.parse(saved);
+    const defaultOrder = Object.keys(INITIAL_BIKE_BRANDS);
+    localStorage.setItem('spark_brand_order', JSON.stringify(defaultOrder));
+    return defaultOrder;
   });
 
   // Listen for storage changes from admin tab
@@ -204,6 +296,12 @@ function App() {
     const handleStorage = (e) => {
       if (e.key === 'spark_bike_brands' && e.newValue) {
         setBikeBrands(JSON.parse(e.newValue));
+      }
+      if (e.key === 'spark_brand_logos' && e.newValue) {
+        setBrandLogos(JSON.parse(e.newValue));
+      }
+      if (e.key === 'spark_brand_order' && e.newValue) {
+        setBrandOrder(JSON.parse(e.newValue));
       }
     };
     window.addEventListener('storage', handleStorage);
@@ -580,15 +678,74 @@ function App() {
                 <button style={styles.bottomNavLinkDropdown}>Shop By Bike <ChevronDown size={14} /></button>
                 {hoveredMenu === 'bike' && (
                   <div style={styles.megaMenuDropdown}>
-                    <div className="app-container" style={styles.megaMenuGrid}>
-                      {Object.entries(bikeBrands).map(([brand, models]) => (
-                        <div key={brand} style={styles.megaMenuColumn}>
-                          <h4 style={styles.megaMenuHeading}>{brand}</h4>
-                          {models.map((model, idx) => (
-                            <a key={idx} href="#" style={styles.megaMenuLink} onClick={(e) => { e.preventDefault(); setSelectedBrand(brand); setSelectedBike(model); switchScreen('catalog'); }}>{model}</a>
+                    <div className="app-container" style={{ display: 'flex', gap: '2rem', textAlign: 'left' }}>
+                      {/* Left Pane: Brands Grid */}
+                      <div style={{ flex: '0 0 550px', borderRight: '1px solid #eee', paddingRight: '1rem', display: 'flex', flexDirection: 'column', maxHeight: '400px', overflowY: 'auto' }}>
+                        <h4 style={{ ...styles.megaMenuHeading, marginBottom: '1rem' }}>Select Brand</h4>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem' }}>
+                          {(brandOrder || []).filter(b => bikeBrands && bikeBrands[b]).map((brand) => (
+                            <div 
+                              key={brand}
+                              onMouseEnter={() => setActiveMegaMenuBrand(brand)}
+                              style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: '1rem 0.5rem',
+                                cursor: 'pointer',
+                                border: activeMegaMenuBrand === brand ? '2px solid #f87171' : '1px solid #eee',
+                                background: activeMegaMenuBrand === brand ? '#fffaf9' : '#fff',
+                                color: activeMegaMenuBrand === brand ? '#f87171' : 'var(--text-main)',
+                                borderRadius: '8px',
+                                transition: 'all 0.2s',
+                                textAlign: 'center'
+                              }}
+                            >
+                              {brandLogos[brand] ? (
+                                <img 
+                                  src={brandLogos[brand]} 
+                                  alt={brand} 
+                                  style={{ width: '40px', height: '40px', objectFit: 'contain', marginBottom: '0.5rem', opacity: activeMegaMenuBrand === brand ? 1 : 0.7 }}
+                                />
+                              ) : (
+                                <div style={{ width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f5f5', borderRadius: '50%', marginBottom: '0.5rem', fontSize: '0.7rem', color: '#999' }}>
+                                  {brand.substring(0, 2).toUpperCase()}
+                                </div>
+                              )}
+                              <span style={{ fontSize: '0.75rem', fontWeight: activeMegaMenuBrand === brand ? 'bold' : '500' }}>
+                                {brand}
+                              </span>
+                            </div>
                           ))}
                         </div>
-                      ))}
+                      </div>
+
+                      {/* Right Pane: Models */}
+                      <div style={{ flex: 1, paddingLeft: '1rem', maxHeight: '400px', overflowY: 'auto' }}>
+                        <h4 style={{ ...styles.megaMenuHeading, marginBottom: '1rem' }}>
+                          {activeMegaMenuBrand ? `Models for ${activeMegaMenuBrand}` : 'Select a brand to view models'}
+                        </h4>
+                        {activeMegaMenuBrand && bikeBrands[activeMegaMenuBrand] && (
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '1rem' }}>
+                            {bikeBrands[activeMegaMenuBrand].map((model, idx) => (
+                              <a 
+                                key={idx} 
+                                href="#" 
+                                style={{...styles.megaMenuLink, padding: '0.5rem', background: '#f9fafb', borderRadius: '4px'}} 
+                                onClick={(e) => { 
+                                  e.preventDefault(); 
+                                  setSelectedBrand(activeMegaMenuBrand); 
+                                  setSelectedBike(model); 
+                                  switchScreen('catalog'); 
+                                }}
+                              >
+                                {model}
+                              </a>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -794,9 +951,17 @@ function App() {
               <div style={styles.sparifyProductGrid}>
                 {spares.slice(0, 4).map(part => (
                   <div key={part.id} style={styles.sparifyProductCard}>
-                    <div style={styles.sparifyProductImagePlaceholder}>
-                      <ShoppingBag size={48} color="#e0e0e0" />
-                    </div>
+                    {part.images && part.images.length > 0 ? (
+                      <div style={{ display: 'flex', overflowX: 'auto', scrollSnapType: 'x mandatory', width: '100%', height: '200px' }}>
+                        {part.images.map((imgUrl, i) => (
+                          <img key={i} src={imgUrl.trim()} alt={`${part.name} ${i+1}`} style={{ flex: '0 0 100%', width: '100%', height: '100%', objectFit: 'contain', scrollSnapAlign: 'start', backgroundColor: '#f9f9f9' }} />
+                        ))}
+                      </div>
+                    ) : (
+                      <div style={styles.sparifyProductImagePlaceholder}>
+                        <ShoppingBag size={48} color="#e0e0e0" />
+                      </div>
+                    )}
                     <div style={styles.sparifyProductInfo}>
                       <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>{part.category}</span>
                       <h4 style={styles.sparifyProductCardTitle}>{part.name}</h4>
@@ -909,7 +1074,7 @@ function App() {
                     style={styles.finderSelect}
                   >
                     <option value="">-- All Brands --</option>
-                    {Object.keys(bikeBrands).map(brand => (
+                    {(brandOrder || []).filter(b => bikeBrands && bikeBrands[b]).map(brand => (
                       <option key={brand} value={brand}>{brand}</option>
                     ))}
                   </select>
@@ -1014,6 +1179,13 @@ function App() {
                 {sortedProducts.map(part => (
                   <div key={part.id} className="glass-panel" style={styles.productCard}>
                     <div style={styles.productBadge}>{part.category}</div>
+                    {part.images && part.images.length > 0 && (
+                      <div style={{ display: 'flex', overflowX: 'auto', scrollSnapType: 'x mandatory', width: '100%', height: '150px', borderBottom: '1px solid #f0f0f0' }}>
+                        {part.images.map((imgUrl, i) => (
+                          <img key={i} src={imgUrl.trim()} alt={`${part.name} ${i+1}`} style={{ flex: '0 0 100%', width: '100%', height: '100%', objectFit: 'contain', scrollSnapAlign: 'start', backgroundColor: '#fff' }} />
+                        ))}
+                      </div>
+                    )}
                     <div style={styles.productDetails}>
                       <h3 style={styles.productName}>{part.name}</h3>
                       <p style={styles.productDesc}>{part.desc}</p>
