@@ -20,6 +20,39 @@ import {
 } from 'lucide-react';
 import './index.css';
 
+// INITIAL SPARES MENU DEFINITION
+const INITIAL_SPARES_MENU = [
+  [
+    { id: 'c1', title: 'Brand Directory', items: ['Oil filter', 'Spark plug', 'Damper rubber', 'Chain lube'] },
+    { id: 'c2', title: 'Body parts', items: ['Visor', 'Front shield'] },
+    { id: 'c3', title: 'Mirror', items: [] }
+  ],
+  [
+    { id: 'c4', title: '', items: ['Brake shoe', 'Brake pedal', 'Disc plate', 'Master cylinder', 'Brake housing', 'Brake cable'] },
+    { id: 'c5', title: 'Gear system', items: ['Gear pedal'] },
+    { id: 'c6', title: 'Foot control', items: ['Footrest', 'Footrest bracket'] }
+  ],
+  [
+    { id: 'c7', title: '', items: ['Regular chain sprocket', 'Chain maintenance'] },
+    { id: 'c8', title: 'Fork parts', items: ['Fork oil seal', 'Shock absorber'] },
+    { id: 'c9', title: 'Swingarm parts', items: ['Swingarm bush kit'] }
+  ],
+  [
+    { id: 'c10', title: '', items: ['Regulator rectifier', 'Speedometer'] },
+    { id: 'c11', title: 'Lighting', items: ['Headlamp', 'Indicators'] },
+    { id: 'c12', title: 'Silencer', items: [] }
+  ],
+  [
+    { id: 'c13', title: '', items: ['Fuel pump assembly', 'Fuel cock'] },
+    { id: 'c14', title: 'Control switch', items: [] },
+    { id: 'c15', title: 'Sticker kits', items: [] }
+  ],
+  [
+    { id: 'c16', title: '', items: ['Clutch plate', 'Clutch assembly', 'Clutch shoe', 'CVT belt'] },
+    { id: 'c17', title: 'Lock Sets', items: [] }
+  ]
+];
+
 // INITIAL BIKE DATA DEFINITION
 const INITIAL_BRAND_LOGOS = {
   'ROYAL ENFIELD': '',
@@ -203,6 +236,16 @@ function AdminPortal() {
     localStorage.setItem('spark_enquiries', JSON.stringify(enquiries));
   }, [enquiries]);
 
+  // Spares Menu State
+  const [sparesMenu, setSparesMenu] = useState(() => {
+    const saved = localStorage.getItem('spark_spares_menu');
+    return saved ? JSON.parse(saved) : INITIAL_SPARES_MENU;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('spark_spares_menu', JSON.stringify(sparesMenu));
+  }, [sparesMenu]);
+
   // Bike Brands state
   const [bikeBrands, setBikeBrands] = useState(() => {
     const saved = localStorage.getItem('spark_bike_brands');
@@ -256,6 +299,49 @@ function AdminPortal() {
   const [newProduct, setNewProduct] = useState({
     name: '', category: '', price: '', stock: '', desc: '', images: ''
   });
+
+  const handleAddMenuCategory = (colIdx) => {
+    const title = prompt('Enter new category name (leave blank for a spacer):');
+    if (title === null) return;
+    const newMenu = [...sparesMenu];
+    newMenu[colIdx].push({ id: Date.now().toString(), title, items: [] });
+    setSparesMenu(newMenu);
+  };
+
+  const handleEditMenuCategory = (colIdx, catIdx, oldTitle) => {
+    const title = prompt('Edit category name:', oldTitle);
+    if (title === null) return;
+    const newMenu = [...sparesMenu];
+    newMenu[colIdx][catIdx].title = title;
+    setSparesMenu(newMenu);
+  };
+
+  const handleDeleteMenuCategory = (colIdx, catIdx) => {
+    if (!confirm('Are you sure you want to delete this category?')) return;
+    const newMenu = [...sparesMenu];
+    newMenu[colIdx].splice(catIdx, 1);
+    setSparesMenu(newMenu);
+  };
+
+  const handleAddMenuLink = (colIdx, catIdx) => {
+    const link = prompt('Enter new sub-category link name:');
+    if (!link) return;
+    const newMenu = [...sparesMenu];
+    newMenu[colIdx][catIdx].items.push(link);
+    setSparesMenu(newMenu);
+  };
+
+  const handleDeleteMenuLink = (colIdx, catIdx, linkIdx) => {
+    const newMenu = [...sparesMenu];
+    newMenu[colIdx][catIdx].items.splice(linkIdx, 1);
+    setSparesMenu(newMenu);
+  };
+
+  const handleSaveAllChanges = () => {
+    localStorage.setItem('spark_last_modified', new Date().toISOString());
+    window.dispatchEvent(new Event('storage'));
+    showToast('All changes saved and published to site!', 'success');
+  };
 
   const handleAddBrand = (e) => {
     e.preventDefault();
@@ -937,7 +1023,69 @@ function AdminPortal() {
               </div>
 
             </div>
+
+            {/* MEGA MENU MANAGEMENT (Full Width) */}
+            <div className="glass-panel" style={{ padding: '2rem', marginTop: '2rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <h3 style={{ fontSize: '1.25rem', textAlign: 'left' }}>Shop By Spares Mega Menu Layout</h3>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '1rem', alignItems: 'start' }}>
+                {sparesMenu.map((col, colIdx) => (
+                  <div key={colIdx} style={{ background: 'rgba(17,24,39,0.02)', padding: '1rem', borderRadius: '8px', border: '1px dashed var(--border)', minHeight: '300px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--text-muted)' }}>COL {colIdx + 1}</span>
+                      <button onClick={() => handleAddMenuCategory(colIdx)} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                        <Plus size={12} /> Add Category
+                      </button>
+                    </div>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      {col.map((cat, catIdx) => (
+                        <div key={cat.id} style={{ background: '#fff', padding: '0.75rem', borderRadius: '6px', border: '1px solid var(--border)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                            <strong style={{ fontSize: '0.85rem' }}>{cat.title || '(Spacer)'}</strong>
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                              <button onClick={() => handleEditMenuCategory(colIdx, catIdx, cat.title)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--text-muted)' }} title="Edit Name"><Wrench size={12} /></button>
+                              <button onClick={() => handleDeleteMenuCategory(colIdx, catIdx)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--danger)' }} title="Delete"><Trash2 size={12} /></button>
+                            </div>
+                          </div>
+                          
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', paddingLeft: '0.5rem', borderLeft: '2px solid var(--border)' }}>
+                            {cat.items.map((link, linkIdx) => (
+                              <div key={linkIdx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--text-main)' }}>{link}</span>
+                                <button onClick={() => handleDeleteMenuLink(colIdx, catIdx, linkIdx)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--danger)' }}><X size={10} /></button>
+                              </div>
+                            ))}
+                            <button onClick={() => handleAddMenuLink(colIdx, catIdx)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--primary)', fontSize: '0.75rem', textAlign: 'left', marginTop: '0.25rem' }}>
+                              + Add Link
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
           </section>
+        )}
+
+        {/* FLOATING SAVE ALL BUTTON */}
+        {isAuthenticated && (
+          <button 
+            onClick={handleSaveAllChanges}
+            style={{
+              position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 50,
+              background: 'var(--success)', color: '#fff', border: 'none',
+              padding: '1rem 2rem', borderRadius: '50px', fontSize: '1rem',
+              fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem',
+              cursor: 'pointer', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
+            }}
+          >
+            <Check size={18} /> Save All Changes
+          </button>
         )}
       </main>
 

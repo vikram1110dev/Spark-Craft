@@ -33,6 +33,39 @@ import {
 import './App.css';
 import heroImg from './assets/hero.png';
 
+// INITIAL SPARES MENU DEFINITION
+const INITIAL_SPARES_MENU = [
+  [
+    { id: 'c1', title: 'Brand Directory', items: ['Oil filter', 'Spark plug', 'Damper rubber', 'Chain lube'] },
+    { id: 'c2', title: 'Body parts', items: ['Visor', 'Front shield'] },
+    { id: 'c3', title: 'Mirror', items: [] }
+  ],
+  [
+    { id: 'c4', title: '', items: ['Brake shoe', 'Brake pedal', 'Disc plate', 'Master cylinder', 'Brake housing', 'Brake cable'] },
+    { id: 'c5', title: 'Gear system', items: ['Gear pedal'] },
+    { id: 'c6', title: 'Foot control', items: ['Footrest', 'Footrest bracket'] }
+  ],
+  [
+    { id: 'c7', title: '', items: ['Regular chain sprocket', 'Chain maintenance'] },
+    { id: 'c8', title: 'Fork parts', items: ['Fork oil seal', 'Shock absorber'] },
+    { id: 'c9', title: 'Swingarm parts', items: ['Swingarm bush kit'] }
+  ],
+  [
+    { id: 'c10', title: '', items: ['Regulator rectifier', 'Speedometer'] },
+    { id: 'c11', title: 'Lighting', items: ['Headlamp', 'Indicators'] },
+    { id: 'c12', title: 'Silencer', items: [] }
+  ],
+  [
+    { id: 'c13', title: '', items: ['Fuel pump assembly', 'Fuel cock'] },
+    { id: 'c14', title: 'Control switch', items: [] },
+    { id: 'c15', title: 'Sticker kits', items: [] }
+  ],
+  [
+    { id: 'c16', title: '', items: ['Clutch plate', 'Clutch assembly', 'Clutch shoe', 'CVT belt'] },
+    { id: 'c17', title: 'Lock Sets', items: [] }
+  ]
+];
+
 // INITIAL BIKE DATA DEFINITION
 const INITIAL_BIKE_BRANDS = {
   'ROYAL ENFIELD': [
@@ -250,6 +283,19 @@ function App() {
   const [activeTab, setActiveTab] = useState('home');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [hoveredMenu, setHoveredMenu] = useState(null);
+  const [sparesMenu, setSparesMenu] = useState(() => {
+    const saved = localStorage.getItem('spark_spares_menu');
+    return saved ? JSON.parse(saved) : INITIAL_SPARES_MENU;
+  });
+
+  // Sync menu across tabs
+  useEffect(() => {
+    const handleStorage = (e) => {
+      if (e.key === 'spark_spares_menu') setSparesMenu(e.newValue ? JSON.parse(e.newValue) : INITIAL_SPARES_MENU);
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
   const [activeMegaMenuBrand, setActiveMegaMenuBrand] = useState(Object.keys(INITIAL_BIKE_BRANDS)[0]);
 
   // SHOW_GARAGE_SERVICES state (controlled by admin dashboard!)
@@ -761,76 +807,20 @@ function App() {
                 {hoveredMenu === 'spares' && (
                   <div style={styles.megaMenuDropdown}>
                     <div className="app-container" style={styles.megaMenuGrid}>
-                      <div style={styles.megaMenuColumn}>
-                        <h4 style={styles.megaMenuHeading}>Brand Directory</h4>
-                        <a href="#" style={styles.megaMenuLink}>Oil filter</a>
-                        <a href="#" style={styles.megaMenuLink}>Spark plug</a>
-                        <a href="#" style={styles.megaMenuLink}>Damper rubber</a>
-                        <a href="#" style={styles.megaMenuLink}>Chain lube</a>
-                        <br/>
-                        <h4 style={styles.megaMenuHeading}>Body parts</h4>
-                        <a href="#" style={styles.megaMenuLink}>Visor</a>
-                        <a href="#" style={styles.megaMenuLink}>Front shield</a>
-                        <br/>
-                        <h4 style={styles.megaMenuHeading}>Mirror</h4>
-                      </div>
-                      <div style={styles.megaMenuColumn}>
-                        <div style={{ height: '2rem' }}></div>
-                        <a href="#" style={styles.megaMenuLink}>Brake shoe</a>
-                        <a href="#" style={styles.megaMenuLink}>Brake pedal</a>
-                        <a href="#" style={styles.megaMenuLink}>Disc plate</a>
-                        <a href="#" style={styles.megaMenuLink}>Master cylinder</a>
-                        <a href="#" style={styles.megaMenuLink}>Brake housing</a>
-                        <a href="#" style={styles.megaMenuLink}>Brake cable</a>
-                        <br/>
-                        <h4 style={styles.megaMenuHeading}>Gear system</h4>
-                        <a href="#" style={styles.megaMenuLink}>Gear pedal</a>
-                        <br/>
-                        <h4 style={styles.megaMenuHeading}>Foot control</h4>
-                        <a href="#" style={styles.megaMenuLink}>Footrest</a>
-                        <a href="#" style={styles.megaMenuLink}>Footrest bracket</a>
-                      </div>
-                      <div style={styles.megaMenuColumn}>
-                        <div style={{ height: '2rem' }}></div>
-                        <a href="#" style={styles.megaMenuLink}>Regular chain sprocket</a>
-                        <a href="#" style={styles.megaMenuLink}>Chain maintenance</a>
-                        <br/>
-                        <h4 style={styles.megaMenuHeading}>Fork parts</h4>
-                        <a href="#" style={styles.megaMenuLink}>Fork oil seal</a>
-                        <a href="#" style={styles.megaMenuLink}>Shock absorber</a>
-                        <br/>
-                        <h4 style={styles.megaMenuHeading}>Swingarm parts</h4>
-                        <a href="#" style={styles.megaMenuLink}>Swingarm bush kit</a>
-                      </div>
-                      <div style={styles.megaMenuColumn}>
-                        <div style={{ height: '2rem' }}></div>
-                        <a href="#" style={styles.megaMenuLink}>Regulator rectifier</a>
-                        <a href="#" style={styles.megaMenuLink}>Speedometer</a>
-                        <br/>
-                        <h4 style={styles.megaMenuHeading}>Lighting</h4>
-                        <a href="#" style={styles.megaMenuLink}>Headlamp</a>
-                        <a href="#" style={styles.megaMenuLink}>Indicators</a>
-                        <br/>
-                        <h4 style={styles.megaMenuHeading}>Silencer</h4>
-                      </div>
-                      <div style={styles.megaMenuColumn}>
-                        <div style={{ height: '2rem' }}></div>
-                        <a href="#" style={styles.megaMenuLink}>Fuel pump assembly</a>
-                        <a href="#" style={styles.megaMenuLink}>Fuel cock</a>
-                        <br/>
-                        <h4 style={styles.megaMenuHeading}>Control switch</h4>
-                        <br/><br/>
-                        <h4 style={styles.megaMenuHeading}>Sticker kits</h4>
-                      </div>
-                      <div style={styles.megaMenuColumn}>
-                        <div style={{ height: '2rem' }}></div>
-                        <a href="#" style={styles.megaMenuLink}>Clutch plate</a>
-                        <a href="#" style={styles.megaMenuLink}>Clutch assembly</a>
-                        <a href="#" style={styles.megaMenuLink}>Clutch shoe</a>
-                        <a href="#" style={styles.megaMenuLink}>CVT belt</a>
-                        <br/>
-                        <h4 style={styles.megaMenuHeading}>Lock Sets</h4>
-                      </div>
+                      {(sparesMenu || []).map((col, colIdx) => (
+                        <div key={colIdx} style={styles.megaMenuColumn}>
+                          {col.map((cat, catIdx) => (
+                            <React.Fragment key={cat.id}>
+                              {catIdx > 0 && cat.title === '' ? <div style={{ height: '2rem' }}></div> : null}
+                              {catIdx > 0 && cat.title !== '' ? <br/> : null}
+                              {cat.title && <h4 style={styles.megaMenuHeading}>{cat.title}</h4>}
+                              {(cat.items || []).map((item, iIdx) => (
+                                <a key={iIdx} href="#" style={styles.megaMenuLink}>{item}</a>
+                              ))}
+                            </React.Fragment>
+                          ))}
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
