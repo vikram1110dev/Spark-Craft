@@ -27,7 +27,8 @@ import {
   Heart,
   ChevronUp,
   User,
-  ChevronDown
+  ChevronDown,
+  ArrowLeft
 } from 'lucide-react';
 import './App.css';
 import heroImg from './assets/hero.png';
@@ -247,6 +248,7 @@ function StarRating({ rating }) {
 function App() {
   // Navigation active tab (highlighter)
   const [activeTab, setActiveTab] = useState('home');
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const [hoveredMenu, setHoveredMenu] = useState(null);
   const [activeMegaMenuBrand, setActiveMegaMenuBrand] = useState(Object.keys(INITIAL_BIKE_BRANDS)[0]);
 
@@ -760,8 +762,7 @@ function App() {
                   <div style={styles.megaMenuDropdown}>
                     <div className="app-container" style={styles.megaMenuGrid}>
                       <div style={styles.megaMenuColumn}>
-                        <h4 style={styles.megaMenuHeading}>Service parts</h4>
-                        <a href="#" style={styles.megaMenuLink}>Air filter</a>
+                        <h4 style={styles.megaMenuHeading}>Brand Directory</h4>
                         <a href="#" style={styles.megaMenuLink}>Oil filter</a>
                         <a href="#" style={styles.megaMenuLink}>Spark plug</a>
                         <a href="#" style={styles.megaMenuLink}>Damper rubber</a>
@@ -770,11 +771,11 @@ function App() {
                         <h4 style={styles.megaMenuHeading}>Body parts</h4>
                         <a href="#" style={styles.megaMenuLink}>Visor</a>
                         <a href="#" style={styles.megaMenuLink}>Front shield</a>
-                        <a href="#" style={styles.megaMenuLink}>Mirror</a>
+                        <br/>
+                        <h4 style={styles.megaMenuHeading}>Mirror</h4>
                       </div>
                       <div style={styles.megaMenuColumn}>
-                        <h4 style={styles.megaMenuHeading}>Brake system</h4>
-                        <a href="#" style={styles.megaMenuLink}>Brake pad</a>
+                        <div style={{ height: '2rem' }}></div>
                         <a href="#" style={styles.megaMenuLink}>Brake shoe</a>
                         <a href="#" style={styles.megaMenuLink}>Brake pedal</a>
                         <a href="#" style={styles.megaMenuLink}>Disc plate</a>
@@ -784,49 +785,51 @@ function App() {
                         <br/>
                         <h4 style={styles.megaMenuHeading}>Gear system</h4>
                         <a href="#" style={styles.megaMenuLink}>Gear pedal</a>
-                        <a href="#" style={styles.megaMenuLink}>Foot control</a>
+                        <br/>
+                        <h4 style={styles.megaMenuHeading}>Foot control</h4>
+                        <a href="#" style={styles.megaMenuLink}>Footrest</a>
+                        <a href="#" style={styles.megaMenuLink}>Footrest bracket</a>
                       </div>
                       <div style={styles.megaMenuColumn}>
-                        <h4 style={styles.megaMenuHeading}>Chain Sprocket</h4>
-                        <a href="#" style={styles.megaMenuLink}>Brass chain sprocket</a>
+                        <div style={{ height: '2rem' }}></div>
                         <a href="#" style={styles.megaMenuLink}>Regular chain sprocket</a>
                         <a href="#" style={styles.megaMenuLink}>Chain maintenance</a>
                         <br/>
                         <h4 style={styles.megaMenuHeading}>Fork parts</h4>
                         <a href="#" style={styles.megaMenuLink}>Fork oil seal</a>
                         <a href="#" style={styles.megaMenuLink}>Shock absorber</a>
-                        <a href="#" style={styles.megaMenuLink}>Swingarm parts</a>
+                        <br/>
+                        <h4 style={styles.megaMenuHeading}>Swingarm parts</h4>
+                        <a href="#" style={styles.megaMenuLink}>Swingarm bush kit</a>
                       </div>
                       <div style={styles.megaMenuColumn}>
-                        <h4 style={styles.megaMenuHeading}>Electrical parts</h4>
-                        <a href="#" style={styles.megaMenuLink}>Stator coil</a>
+                        <div style={{ height: '2rem' }}></div>
                         <a href="#" style={styles.megaMenuLink}>Regulator rectifier</a>
                         <a href="#" style={styles.megaMenuLink}>Speedometer</a>
                         <br/>
                         <h4 style={styles.megaMenuHeading}>Lighting</h4>
                         <a href="#" style={styles.megaMenuLink}>Headlamp</a>
                         <a href="#" style={styles.megaMenuLink}>Indicators</a>
-                        <a href="#" style={styles.megaMenuLink}>Silencer</a>
+                        <br/>
+                        <h4 style={styles.megaMenuHeading}>Silencer</h4>
                       </div>
                       <div style={styles.megaMenuColumn}>
-                        <h4 style={styles.megaMenuHeading}>Fuel system</h4>
-                        <a href="#" style={styles.megaMenuLink}>Fuel pump motor</a>
+                        <div style={{ height: '2rem' }}></div>
                         <a href="#" style={styles.megaMenuLink}>Fuel pump assembly</a>
                         <a href="#" style={styles.megaMenuLink}>Fuel cock</a>
                         <br/>
                         <h4 style={styles.megaMenuHeading}>Control switch</h4>
-                        <a href="#" style={styles.megaMenuLink}>Sticker kits</a>
+                        <br/><br/>
+                        <h4 style={styles.megaMenuHeading}>Sticker kits</h4>
                       </div>
                       <div style={styles.megaMenuColumn}>
-                        <h4 style={styles.megaMenuHeading}>Clutch parts</h4>
-                        <a href="#" style={styles.megaMenuLink}>Clutch cable</a>
+                        <div style={{ height: '2rem' }}></div>
                         <a href="#" style={styles.megaMenuLink}>Clutch plate</a>
                         <a href="#" style={styles.megaMenuLink}>Clutch assembly</a>
                         <a href="#" style={styles.megaMenuLink}>Clutch shoe</a>
                         <a href="#" style={styles.megaMenuLink}>CVT belt</a>
                         <br/>
                         <h4 style={styles.megaMenuHeading}>Lock Sets</h4>
-                        <a href="#" style={styles.megaMenuLink}>Ignition locks</a>
                       </div>
                     </div>
                   </div>
@@ -950,7 +953,11 @@ function App() {
               <h2 style={styles.sparifySectionTitle}>BEST SELLERS</h2>
               <div style={styles.sparifyProductGrid}>
                 {spares.slice(0, 4).map(part => (
-                  <div key={part.id} style={styles.sparifyProductCard}>
+                  <div 
+                    key={part.id} 
+                    style={{ ...styles.sparifyProductCard, cursor: 'pointer' }}
+                    onClick={() => { setSelectedProduct(part); switchScreen('product'); }}
+                  >
                     {part.images && part.images.length > 0 ? (
                       <div style={{ display: 'flex', overflowX: 'auto', scrollSnapType: 'x mandatory', width: '100%', height: '200px' }}>
                         {part.images.map((imgUrl, i) => (
@@ -968,7 +975,7 @@ function App() {
                       <StarRating rating={part.rating} />
                       <div style={styles.sparifyProductCardFooter}>
                         <span style={{ fontWeight: '900', fontSize: '1.2rem', color: '#111' }}>${part.price.toFixed(2)}</span>
-                        <button onClick={() => { addToCart(part); showToast(`Added ${part.name}`, 'success'); }} style={styles.sparifyAddToCartBtn}>+ Add</button>
+                        <button onClick={(e) => { e.stopPropagation(); addToCart(part); showToast(`Added ${part.name}`, 'success'); }} style={styles.sparifyAddToCartBtn}>+ Add</button>
                       </div>
                     </div>
                   </div>
@@ -1177,7 +1184,12 @@ function App() {
             ) : (
               <div style={styles.catalogGrid}>
                 {sortedProducts.map(part => (
-                  <div key={part.id} className="glass-panel" style={styles.productCard}>
+                  <div 
+                    key={part.id} 
+                    className="glass-panel" 
+                    style={{ ...styles.productCard, cursor: 'pointer' }}
+                    onClick={() => { setSelectedProduct(part); switchScreen('product'); }}
+                  >
                     <div style={styles.productBadge}>{part.category}</div>
                     {part.images && part.images.length > 0 && (
                       <div style={{ display: 'flex', overflowX: 'auto', scrollSnapType: 'x mandatory', width: '100%', height: '150px', borderBottom: '1px solid #f0f0f0' }}>
@@ -1210,7 +1222,7 @@ function App() {
                         </div>
                         <div style={{ display: 'flex', gap: '0.4rem' }}>
                           <button
-                            onClick={() => toggleWishlist(part)}
+                            onClick={(e) => { e.stopPropagation(); toggleWishlist(part); }}
                             title={isWishlisted(part.id) ? 'Remove from wishlist' : 'Save to wishlist'}
                             style={{
                               display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -1224,7 +1236,7 @@ function App() {
                             <Heart size={14} fill={isWishlisted(part.id) ? '#EF4444' : 'none'} />
                           </button>
                           <button 
-                            onClick={() => addToCart(part)}
+                            onClick={(e) => { e.stopPropagation(); addToCart(part); }}
                             className="btn-primary" 
                             style={styles.addToCartBtn}
                           >
@@ -1254,6 +1266,101 @@ function App() {
                 </p>
               </div>
             )}
+          </section>
+        )}
+
+        {/* SCREEN: Product Details */}
+        {activeTab === 'product' && selectedProduct && (
+          <section className="animate-fade-in-up" style={{ ...styles.sectionSpacing, maxWidth: '1200px', margin: '0 auto', paddingTop: '2rem' }}>
+            {/* Back Button */}
+            <button 
+              onClick={() => { switchScreen('catalog'); setSelectedProduct(null); }}
+              style={{ background: 'none', border: 'none', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', marginBottom: '2rem', fontSize: '0.95rem', fontWeight: 500 }}
+            >
+              <ArrowLeft size={18} /> Back to Catalog
+            </button>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '4rem', alignItems: 'start' }}>
+              {/* Left Column: Image Viewer */}
+              <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem', background: '#fff' }}>
+                <div style={{ width: '100%', height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f9f9f9', borderRadius: '12px', overflow: 'hidden' }}>
+                  {selectedProduct.images && selectedProduct.images.length > 0 ? (
+                    <div style={{ display: 'flex', overflowX: 'auto', scrollSnapType: 'x mandatory', width: '100%', height: '100%', WebkitOverflowScrolling: 'touch' }}>
+                        {selectedProduct.images.map((imgUrl, i) => (
+                          <img key={i} src={imgUrl.trim()} alt={`${selectedProduct.name} ${i+1}`} style={{ flex: '0 0 100%', width: '100%', height: '100%', objectFit: 'contain', scrollSnapAlign: 'start', backgroundColor: '#fff' }} />
+                        ))}
+                    </div>
+                  ) : (
+                    <span style={{ color: '#ccc' }}>No Image Available</span>
+                  )}
+                </div>
+                {selectedProduct.images && selectedProduct.images.length > 1 && (
+                  <p style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Swipe or scroll to view more images</p>
+                )}
+              </div>
+
+              {/* Right Column: Details */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', textAlign: 'left' }}>
+                <div>
+                  <span style={{ display: 'inline-block', background: 'rgba(17,24,39,0.05)', padding: '0.3rem 0.8rem', borderRadius: '100px', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                    {selectedProduct.category}
+                  </span>
+                  <h1 style={{ fontSize: '2.5rem', fontWeight: 900, color: '#111', lineHeight: 1.2, marginBottom: '0.5rem' }}>
+                    {selectedProduct.name}
+                  </h1>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                    <StarRating rating={selectedProduct.rating} />
+                    <span style={{ fontSize: '0.85rem', color: 'var(--success)', fontWeight: 600 }}>{selectedProduct.stock > 0 ? `In Stock (${selectedProduct.stock})` : 'Out of Stock'}</span>
+                  </div>
+                  <h2 style={{ fontSize: '2rem', fontWeight: 900, color: 'var(--primary)' }}>
+                    ${selectedProduct.price.toFixed(2)}
+                  </h2>
+                </div>
+
+                <div style={{ borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', padding: '1.5rem 0' }}>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.75rem' }}>Product Overview</h3>
+                  <p style={{ color: 'var(--text-main)', fontSize: '0.95rem', lineHeight: 1.6 }}>
+                    {selectedProduct.desc || 'No description available for this product.'}
+                  </p>
+                </div>
+
+                {selectedProduct.compatibility && selectedProduct.compatibility.length > 0 && (
+                  <div>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.75rem' }}>Compatibility</h3>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      {selectedProduct.compatibility.map(b => (
+                        <span key={b} style={styles.compatBadge}>{b}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); addToCart(selectedProduct); showToast(`Added ${selectedProduct.name} to cart`, 'success'); }}
+                    className="btn-primary" 
+                    style={{ flex: 1, padding: '1rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                    disabled={selectedProduct.stock <= 0}
+                  >
+                    <ShoppingBag size={20} />
+                    {selectedProduct.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
+                  </button>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); toggleWishlist(selectedProduct); }}
+                    style={{ 
+                      width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                      borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s ease',
+                      border: isWishlisted(selectedProduct.id) ? '2px solid rgba(239,68,68,0.5)' : '1px solid var(--border)',
+                      background: isWishlisted(selectedProduct.id) ? 'rgba(239,68,68,0.08)' : '#fff',
+                      color: isWishlisted(selectedProduct.id) ? '#EF4444' : 'var(--text-muted)'
+                    }}
+                    title={isWishlisted(selectedProduct.id) ? 'Remove from wishlist' : 'Save to wishlist'}
+                  >
+                    <Heart size={24} fill={isWishlisted(selectedProduct.id) ? '#EF4444' : 'none'} />
+                  </button>
+                </div>
+              </div>
+            </div>
           </section>
         )}
 
