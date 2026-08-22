@@ -1073,7 +1073,7 @@ function AdminPortal() {
         )}
 
         {/* FLOATING SAVE ALL BUTTON */}
-        {isAuthenticated && (
+        {isAdminLoggedIn && (
           <button 
             onClick={handleSaveAllChanges}
             style={{
